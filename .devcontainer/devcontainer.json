@@ -1,5 +1,5 @@
 {
-	"name": "template",
+	"name": "datacula",
 	"runArgs": ["--init"],
 	"build": {
 		"dockerfile": "Dockerfile",
