@@ -1,0 +1,40 @@
+[project]
+name = "template"
+description = "a simple, fast, and powerful parcel simulator"
+readme = "readme"
+requires-python = ">=3.7"
+license = {file = "license"}
+authors = [
+    {name = "ngam", email="ngam@users.noreply.github.com"},
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "License :: OSI Approved :: MIT License",
+    "Intended Audience :: Science/Research",
+    "Topic :: Scientific/Engineering :: Atmospheric Science",
+]
+keywords = [
+    "atmospheric", "particles", "climate", "aerosol", "particulate",
+    "parcel", "clouds", "template",
+]
+
+dependencies = [""]
+
+# This is set automatically by flit using `template.__version__`
+dynamic = ["version"]
+
+[project.urls]
+homepage = "https://github.com/uncscode/template"
+repository = "https://github.com/uncscode/template"
+
+[project.optional-dependencies]
+dev = [
+    "pylint", "pytest", "autopep8", "jupyterlab", "pytype",
+    "typing", "build", "flake8", "jupyter-book", "ghp-import",
+    "matplotlib",
+]
+
+[build-system]
+requires = ["flit_core >=3.2,<4"]
+build-backend = "flit_core.buildapi"
