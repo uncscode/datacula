@@ -1,8 +1,8 @@
 """conversion functions common for aerosol processing
 """
 
-import numpy as np
 from typing import Union, Tuple
+import numpy as np
 
 
 def coerce_type(data, dtype):
@@ -102,13 +102,15 @@ def volume_to_length(volume: float, length_type: str = 'radius') -> float:
     Returns:
         The converted length.
     """
+
+    if length_type not in ['radius', 'diameter']:
+        raise ValueError('length_type must be radius or diameter')
+
     radius = (volume * 3 / (4 * np.pi)) ** (1 / 3)
+
     if length_type == 'radius':
         return radius
-    elif length_type == 'diameter':
-        return radius * 2
-    else:
-        raise ValueError('length_type must be radius or diameter')
+    return radius * 2
 
 
 def length_to_volume(length: float, length_type: str = 'radius') -> float:
