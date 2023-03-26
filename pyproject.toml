@@ -1,11 +1,12 @@
 [project]
 name = "datacula"
-description = "a simple, fast, and powerful parcel simulator"
+description = "a python package for atmospheric particle-gas data analysis and visualization"
 readme = "readme"
 requires-python = ">=3.7"
 license = {file = "license"}
 authors = [
     {name = "ngam", email="ngam@users.noreply.github.com"},
+    {name = "Gorkowski", email="Gorkowski@users.noreply.github.com"},
 ]
 classifiers = [
     "Programming Language :: Python :: 3",
@@ -19,7 +20,10 @@ keywords = [
     "parcel", "clouds", "datacula",
 ]
 
-dependencies = [""]
+dependencies = [
+    "matplotlib", "numpy", "scipy", "ipython", "tqdm",
+    "PyMieScatt", "particula",
+]
 
 # This is set automatically by flit using `datacula.__version__`
 dynamic = ["version"]
@@ -31,8 +35,7 @@ repository = "https://github.com/uncscode/datacula"
 [project.optional-dependencies]
 dev = [
     "pylint", "pytest", "autopep8", "jupyterlab", "pytype",
-    "typing", "build", "flake8", "jupyter-book", "ghp-import",
-    "matplotlib",
+    "typing", "build", "flake8", "jupyter-book", "ghp-import", "ipykernel",
 ]
 
 [build-system]
