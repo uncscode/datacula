@@ -21,7 +21,7 @@ def coerce_type(data, dtype):
         return data
 
 
-def round(
+def round_arbitrary(
         values: Union[float, list[float], np.ndarray],
         base: float = 1.0,
         mode: str = 'round',
@@ -99,7 +99,8 @@ def volume_to_length(volume: float, length_type: str = 'radius') -> float:
 
     Parameters:
         volume: The volume to be converted.
-        length_type: The type of length to convert to ('radius' or 'diameter') Default is 'radius'.
+        length_type: The type of length to convert to ('radius' or 'diameter')
+        Default is 'radius'.
 
     Returns:
         The converted length.
@@ -151,6 +152,10 @@ def kappa_volume_solute(
     Returns:
         The volume of solute as a numpy array.
     """
+
+    if kappa <= 1e-16:  # devide by zero error, limit
+        kappa = 1e-16
+
     vol_factor = (water_activity - 1) / (
             water_activity * (1 - kappa - 1 / water_activity)
         )
@@ -174,6 +179,9 @@ def kappa_volume_water(
     Returns:
         The volume of water as a float.
     """
+    if water_activity == 1:
+        water_activity = 1 - 1e-16
+
     return volume_solute * kappa / (1 / water_activity - 1)
 
 
@@ -194,6 +202,9 @@ def kappa_from_volume(
     Returns:
         The kappa parameter as a float.
     """
+    if water_activity == 1:
+        water_activity = 1 - 1e-16
+
     return (1 / water_activity - 1) * volume_water / volume_solute
 
 
@@ -235,6 +246,9 @@ def mole_fraction_to_mass_fraction_multi(
     Returns:
         A list of mass fractions.
     """
+    if np.sum(mole_fractions) != 1:
+        raise ValueError('Sum of mole fractions must be 1')
+
     total_molecular_weight = np.sum(
             [mf * mw for mf, mw in zip(mole_fractions, molecular_weights)]
         )
@@ -256,7 +270,7 @@ def mass_fraction_to_volume_fraction(
 
 
 def volume_water_from_volume_fraction(
-    volume_solute_dry: float, 
+    volume_solute_dry: float,
     volume_fraction_water: float
 ) -> float:
     """
@@ -300,7 +314,9 @@ def effective_refractive_index(
         volume_zero/volume_total * (m_zero-1)/(m_zero+2)
         + volume_one/volume_total * (m_one-1)/(m_one+2)
         )  # molar refraction mixing
-    return (2*r_effective +1)/(1-r_effective)  # convert to refractive index
+
+    # convert to refractive index
+    return (2*r_effective + 1) / (1-r_effective)
 
 
 def convert_sizer_dn(
@@ -310,6 +326,7 @@ def convert_sizer_dn(
     """
     Converts the sizer data from dn/dlogdp to dn
     TODO: fix the over counting of the last bin or first?
+    and write a test for this
 
     Parameters:
         diameter : diameter array
