@@ -13,12 +13,10 @@ def coerce_type(data, dtype):
         try:
             if dtype == np.ndarray:
                 return np.array(data)
-            else:
-                return dtype(data)
-        except (ValueError, TypeError):
-            raise ValueError(f'Could not coerce {data} to {dtype}')
-    else:
-        return data
+            return dtype(data)
+        except (ValueError, TypeError) as exc:
+            raise ValueError(f'Could not coerce {data} to {dtype}') from exc
+    return data
 
 
 def round_arbitrary(
@@ -89,8 +87,7 @@ def radius_diameter(value: float, to_diameter: bool = True) -> float:
     """
     if to_diameter:
         return value * 2
-    else:
-        return value / 2
+    return value / 2
 
 
 def volume_to_length(volume: float, length_type: str = 'radius') -> float:
@@ -153,8 +150,7 @@ def kappa_volume_solute(
         The volume of solute as a numpy array.
     """
 
-    if kappa <= 1e-16:  # devide by zero error, limit
-        kappa = 1e-16
+    kappa = max(kappa, 1e-16)  # Avoid division by zero
 
     vol_factor = (water_activity - 1) / (
             water_activity * (1 - kappa - 1 / water_activity)
@@ -179,8 +175,8 @@ def kappa_volume_water(
     Returns:
         The volume of water as a float.
     """
-    if water_activity == 1:
-        water_activity = 1 - 1e-16
+    # Avoid division by zero
+    water_activity = min(water_activity, 1 - 1e-16)
 
     return volume_solute * kappa / (1 / water_activity - 1)
 
@@ -202,8 +198,8 @@ def kappa_from_volume(
     Returns:
         The kappa parameter as a float.
     """
-    if water_activity == 1:
-        water_activity = 1 - 1e-16
+    # Avoid division by zero
+    water_activity = min(water_activity, 1 - 1e-16)
 
     return (1 / water_activity - 1) * volume_water / volume_solute
 
@@ -283,11 +279,11 @@ def volume_water_from_volume_fraction(
 
 
 def effective_refractive_index(
-            m_zero: float,
-            m_one: float,
+            m_zero: Union[float, complex],
+            m_one: Union[float, complex],
             volume_zero: float,
             volume_one: float
-        ) -> float:
+        ) -> Union[float, complex]:
     """Calculate the refractive index of a mixture of two solutes,
     given the refractive index of each solute and the volume of each solute.
     The volume can be volume fractions.
