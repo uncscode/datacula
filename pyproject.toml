@@ -2,7 +2,7 @@
 name = "datacula"
 description = "a python package for atmospheric particle-gas data analysis and visualization"
 readme = "readme"
-requires-python = ">=3.7"
+requires-python = ">=3.9"
 license = {file = "license"}
 authors = [
     {name = "ngam", email="ngam@users.noreply.github.com"},
