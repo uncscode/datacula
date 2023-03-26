@@ -317,6 +317,8 @@ def effective_refractive_index(
     return (2*r_effective + 1) / (1-r_effective)
 
 
+# continue refactor from here:
+
 def convert_sizer_dn(
             diameter: np.ndarray,
             dn_dlogdp: np.ndarray
@@ -342,3 +344,44 @@ def convert_sizer_dn(
     upper = diameter+delta/2
 
     return dn_dlogdp*np.log10(upper/lower)
+
+
+def datetime64_from_epoch_array(epoch_array: np.ndarray, delta: int=0) -> np.datetime64:
+    """
+    Converts an array of epoch times to a numpy array of datetime64 objects.
+    """
+    return np.array([np.datetime64(int(epoch+delta),'s') for epoch in epoch_array])
+
+
+def list_to_dict(list_of_str: list) -> dict:
+    """
+    Converts a list of strings to a dictionary. The keys are the strings
+    and the values are the index of the string in the list.
+    """
+    return {list_of_str[i]:i for i in range(len(list_of_str))}
+
+
+def get_values_in_dict(key_list: list, dict_to_check: dict) -> list:
+    """
+    Checks if keys in a list are in a dictionary. And get the values of the keys.
+
+    Parameters
+    ----------
+    key_list : list
+        List of keys to check.
+    dict_to_check : dict
+        Dictionary to check.
+    
+    Returns
+    -------
+    list
+        List of values of the keys in the dictionary.
+    """
+    good_keys = []
+    for key in key_list:
+        if key in dict_to_check:
+            good_keys.append(dict_to_check[key])
+        else:
+            print(dict_to_check.keys())
+            raise KeyError(f"key {key} not in dictionary")
+    return good_keys

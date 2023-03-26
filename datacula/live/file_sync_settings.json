@@ -1,0 +1,16 @@
+{
+    "anemoemter_data": {
+        "core_folder": "c:\\Users\\253393\\Documents\\GitHub\\CAFE-processing\\server\\server_files_clone\\anemometer_data",
+        "clone_folder": "c:\\Users\\253393\\Documents\\GitHub\\CAFE-processing\\server\\server_files\\anemometer_data",
+        "files_core_search_key": "*.*",
+        "files_clone_search_key": "*.*",
+        "max_file_age_days": 30}
+        ,
+    "CCNc_data": {
+            "core_folder": "c:\\Users\\253393\\Documents\\GitHub\\CAFE-processing\\server\\server_files_clone\\CCNc_data",
+            "clone_folder": "c:\\Users\\253393\\Documents\\GitHub\\CAFE-processing\\server\\server_files\\CCNc_data",
+            "files_core_search_key": "*.*",
+            "files_clone_search_key": "*.*",
+            "max_file_age_days": 30
+    }
+}
