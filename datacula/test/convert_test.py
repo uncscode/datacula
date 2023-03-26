@@ -70,3 +70,16 @@ def test_round():
         assert False, "Expected ValueError"
 
 
+def test_radius_diameter():
+    # Test radius to diameter conversion
+    assert convert.radius_diameter(1.0, to_diameter=True) == 2.0
+    assert convert.radius_diameter(2.5, to_diameter=True) == 5.0
+    assert convert.radius_diameter(3.8, to_diameter=True) == 7.6
+
+    # Test diameter to radius conversion
+    assert convert.radius_diameter(2.0, to_diameter=False) == 1.0
+    assert convert.radius_diameter(5.0, to_diameter=False) == 2.5
+    assert convert.radius_diameter(7.6, to_diameter=False) == 3.8
+
+
+
