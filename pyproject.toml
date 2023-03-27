@@ -17,7 +17,7 @@ classifiers = [
 ]
 keywords = [
     "atmospheric", "particles", "climate", "aerosol", "particulate",
-    "parcel", "clouds", "datacula",
+    "parcel", "clouds", "datacula", "scheduler"
 ]
 
 dependencies = [
