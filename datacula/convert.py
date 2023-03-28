@@ -353,7 +353,9 @@ def datetime64_from_epoch_array(
     """
     Converts an array of epoch times to a numpy array of datetime64 objects.
     """
-    return np.array([np.datetime64(int(epoch+delta),'s') for epoch in epoch_array])
+    return np.array(
+        [np.datetime64(int(epoch+delta), 's') for epoch in epoch_array]
+    )
 
 
 def list_to_dict(list_of_str: list) -> dict:
@@ -361,7 +363,7 @@ def list_to_dict(list_of_str: list) -> dict:
     Converts a list of strings to a dictionary. The keys are the strings
     and the values are the index of the string in the list.
     """
-    return {list_of_str[i]:i for i in range(len(list_of_str))}
+    return {list_of_str[i]: i for i in range(len(list_of_str))}
 
 
 def get_values_in_dict(key_list: list, dict_to_check: dict) -> list:
@@ -374,7 +376,7 @@ def get_values_in_dict(key_list: list, dict_to_check: dict) -> list:
         List of keys to check.
     dict_to_check : dict
         Dictionary to check.
-    
+
     Returns
     -------
     list

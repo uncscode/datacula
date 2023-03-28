@@ -17,12 +17,13 @@ classifiers = [
 ]
 keywords = [
     "atmospheric", "particles", "climate", "aerosol", "particulate",
-    "parcel", "clouds", "datacula", "scheduler"
+    "parcel", "clouds", "datacula", 
 ]
 
 dependencies = [
     "matplotlib", "numpy", "scipy", "ipython", "tqdm",
-    "PyMieScatt", "particula",
+    "PyMieScatt", "particula", "scheduler", "pylint","flake8",
+    "jupyter-book", "ghp-import", "ipykernel",
 ]
 
 # This is set automatically by flit using `datacula.__version__`
@@ -35,7 +36,7 @@ repository = "https://github.com/uncscode/datacula"
 [project.optional-dependencies]
 dev = [
     "pylint", "pytest", "autopep8", "jupyterlab", "pytype",
-    "typing", "build", "flake8", "jupyter-book", "ghp-import", "ipykernel",
+    "typing", "build", 
 ]
 
 [build-system]
