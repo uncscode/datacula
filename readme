@@ -1,1 +1,1 @@
-datacula
+`datacula` is a Python package for data analysis and collection of aerosol-gas instruments. It provides a set of tools for importing, processing, and visualizing data from various instruments used for air quality monitoring.
