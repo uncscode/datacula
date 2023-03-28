@@ -8,6 +8,11 @@ Most have to rewrite to new files to get clean data --> deleteing headers/errone
 
 @author: Spencer Jordan
 """
+# linting disabled until reformatting of this file
+# pylint: disable=all
+# flake8: noqa
+# pytype: skip-file
+
 import pandas as pd
 import numpy as np
 import os

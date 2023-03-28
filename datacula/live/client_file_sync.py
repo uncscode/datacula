@@ -3,6 +3,10 @@
 Writen to work independently of the rest of the datacula code base and run on
 older versions of python.
 """
+# linting disabled until reformatting of this file
+# pylint: disable=all
+# flake8: noqa
+# pytype: skip-file
 
 import time
 import os

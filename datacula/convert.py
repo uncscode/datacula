@@ -346,7 +346,10 @@ def convert_sizer_dn(
     return dn_dlogdp*np.log10(upper/lower)
 
 
-def datetime64_from_epoch_array(epoch_array: np.ndarray, delta: int=0) -> np.datetime64:
+def datetime64_from_epoch_array(
+            epoch_array: np.ndarray,
+            delta: int = 0
+        ) -> np.datetime64:
     """
     Converts an array of epoch times to a numpy array of datetime64 objects.
     """
@@ -363,7 +366,7 @@ def list_to_dict(list_of_str: list) -> dict:
 
 def get_values_in_dict(key_list: list, dict_to_check: dict) -> list:
     """
-    Checks if keys in a list are in a dictionary. And get the values of the keys.
+    Checks if keys in a list are in a dictionary. And get the values of the key
 
     Parameters
     ----------

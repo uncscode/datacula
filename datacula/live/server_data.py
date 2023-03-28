@@ -1,5 +1,9 @@
 """Major clean up needed
 """
+# linting disabled until reformatting of this file
+# pylint: disable=all
+# flake8: noqa
+# pytype: skip-file
 
 import glob, time, json, os, pickle
 import numpy as np

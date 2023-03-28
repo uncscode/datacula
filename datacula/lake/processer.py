@@ -1,4 +1,9 @@
 """data processing funcitons that can be used on datalake objects."""
+# linting disabled until reformatting of this file
+# pylint: disable=all
+# flake8: noqa
+# pytype: skip-file
+
 import numpy as np
 from scipy.interpolate import interp1d
 

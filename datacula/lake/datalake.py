@@ -1,4 +1,8 @@
 """creates the datastream and datalake class"""
+# linting disabled until reformatting of this file
+# pylint: disable=all
+# flake8: noqa
+# pytype: skip-file
 
 # %%
 

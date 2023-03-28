@@ -1,4 +1,9 @@
 # %%
+# linting disabled until reformatting of this file
+# pylint: disable=all
+# flake8: noqa
+# pytype: skip-file
+
 import numpy as np
 from matplotlib import pyplot as plt, dates
 from data_lake_tester import DataLake_saveNload

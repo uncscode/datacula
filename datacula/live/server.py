@@ -5,6 +5,11 @@ Reads in data from client and pre-processes for ease of use with the Dash script
 @author: Spencer Jordan
 """
 
+# linting disabled until reformatting of this file
+# pylint: disable=all
+# flake8: noqa
+# pytype: skip-file
+
 import socket
 import threading
 import time

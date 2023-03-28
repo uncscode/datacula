@@ -5,6 +5,10 @@ Created on Thu Apr 21 08:38:24 2022
 Script for Server to save all files to master DataFrame
 @author: Spencer Jordan
 """
+# linting disabled until reformatting of this file
+# pylint: disable=all
+# flake8: noqa
+# pytype: skip-file
 
 import pandas as pd
 import glob

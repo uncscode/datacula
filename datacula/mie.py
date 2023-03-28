@@ -1,6 +1,10 @@
 """Mie calculation for CAPS-ssa insturment and others
 TODO: clean up the linting, imports, create tests
 """
+# linting disabled until reformatting of this file
+# pylint: disable=all
+# flake8: noqa
+# pytype: skip-file
 
 
 import numpy as np
