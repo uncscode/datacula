@@ -245,6 +245,7 @@ def test_effective_refractive_index():
 
 
 def test_datetime64_from_epoch_array():
+    """Test the datetime64_from_epoch_array function."""
     # Test with a simple example array
     epoch_array = np.array([0, 1, 2, 3, 4])
     expected_result = np.array(['1970-01-01T00:00:00', '1970-01-01T00:00:01',

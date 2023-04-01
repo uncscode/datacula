@@ -400,6 +400,8 @@ def convert_sizer_dn(
     -----------
         np.ndarray: Array of number concentration of particles
         per unit diameter.
+
+    # TODO: Address potential over-counting in last/first bin
     """
     assert len(diameter) == len(dn_dlogdp) > 0, \
         "Inputs must be non-empty arrays of the same length."
@@ -408,16 +410,15 @@ def convert_sizer_dn(
     delta = np.zeros_like(diameter)
     delta[:-1] = np.diff(diameter)
     delta[-1] = delta[-2]**2/delta[-3]
-    # TODO: Address potential over-counting in last/first bin
 
     # Compute the lower and upper bin edges
     lower = diameter - delta/2
     upper = diameter + delta/2
 
     # Convert from dn/dlogdp to dn
-    dn = dn_dlogdp * np.log10(upper/lower)
+    dn_dp = dn_dlogdp * np.log10(upper/lower)
 
-    return dn
+    return dn_dp
 
 
 def datetime64_from_epoch_array(
