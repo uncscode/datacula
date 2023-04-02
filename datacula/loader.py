@@ -1,15 +1,17 @@
 """File readers and loaders for datacula."""
 # pylint: disable=too-many-arguments
-
+# pylint: disable=too-many-locals
+# pylint: disable=too-many-branches
+# noaq: C901
 from typing import List, Union, Tuple, Dict, Any
 
 import warnings
 import glob
 import os
 import pickle
+from datetime import datetime
 import numpy as np
 import pandas as pd
-from datetime import datetime
 from datacula import convert
 
 FILTER_WARNING_FRACTION = 0.5
@@ -195,31 +197,28 @@ def parse_time_column(
     if time_format == 'epoch':
         # if the time is in epoch format
         return float(line[time_column]) + seconds_shift
-    elif isinstance(time_column, int):
+    if isinstance(time_column, int):
         # if the time and date are in one column
         return datetime.strptime(
                                     line[time_column],
                                     time_format
                                 ).timestamp() + seconds_shift
-
-    elif isinstance(time_column, list) and len(time_column) == 2:
+    if isinstance(time_column, list) and len(time_column) == 2:
         # if the time and date are in two column
         time_str = f"{line[time_column[0]]} {line[time_column[1]]}"
         return datetime.strptime(
                                     time_str,
                                     time_format
                                 ).timestamp() + seconds_shift
-
-    elif date_offset:
+    if date_offset:
         # if the time is in one column, and the date is fixed
         time_str = f"{date_offset} {line[time_column]}"
         return datetime.strptime(
                                     time_str,
                                     time_format
                                 ).timestamp() + seconds_shift
-    else:
-        raise ValueError(
-            f"Invalid time column or format: {time_column}, {time_format}")
+    raise ValueError(
+        f"Invalid time column or format: {time_column}, {time_format}")
 
 
 def sample_data(
@@ -230,7 +229,7 @@ def sample_data(
             delimiter: str,
             date_offset: str = None,
             seconds_shift: int = 0,
-        ) -> Tuple[np.array, np.array]:  # noqa C901
+        ) -> Tuple[np.array, np.array]:
     """
     Samples the data to get the time and data streams.
     TODO: revise this function
@@ -548,8 +547,8 @@ def save_datalake(path: str, data_lake: object = None, sufix_name: str = None):
     file_path = os.path.join(output_folder, file_name)
 
     # save datalake
-    with open(file_path, 'wb') as f:
-        pickle.dump(data_lake, f)
+    with open(file_path, 'wb') as file:
+        pickle.dump(data_lake, file)
 
 
 def load_datalake(path: str) -> object:
@@ -570,8 +569,8 @@ def load_datalake(path: str) -> object:
     file_path = os.path.join(path, 'output', 'datalake.pk')
 
     # load datalake
-    with open(file_path, 'rb') as f:
-        data_lake = pickle.load(f)
+    with open(file_path, 'rb') as file:
+        data_lake = pickle.load(file)
 
     return data_lake
 
