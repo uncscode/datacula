@@ -4,6 +4,9 @@ from typing import Union, Optional, List
 import numpy as np
 from datacula import convert, stats
 
+# pylint: disable=too-many-instance-attributes
+# pylint: disable=no-else-return
+
 
 class DataStream():
     """A class for calculating time averages of data streams on-the-fly.

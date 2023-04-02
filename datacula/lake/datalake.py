@@ -100,7 +100,7 @@ class DataLake():
             None.
         """
         for key in self.settings:
-            if key in self.datastreams.keys():
+            if key in self.datastreams:
                 self.update_data(key)
             else:
                 print('Initialising datastream: ', key)
@@ -122,6 +122,7 @@ class DataLake():
         raise NotImplementedError(
             "update_data method needs to be implemented in a subclass.")
 
+    # pylint: disable=too-many-arguments
     def add_processed_datastream(
         self,
         key: str,
