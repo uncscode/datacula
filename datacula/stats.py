@@ -4,12 +4,12 @@ from typing import Union, Tuple
 import numpy as np
 
 
-def drop_zeros(data_stream_object: object, zero_keys: list) -> object:
+def drop_zeros(datastream_object: object, zero_keys: list) -> object:
     """Drop rows where zero keys not zero, and return data stream
 
     Parameters
     ----------
-    data_stream : object
+    datastream_object : object
         data stream object
     zero_keys : list
         list of keys to check for zeros
@@ -21,16 +21,16 @@ def drop_zeros(data_stream_object: object, zero_keys: list) -> object:
     """
     # get zero keys
     zeros = np.sum(
-            data_stream_object.return_data(
+            datastream_object.return_data(
                 keys=zero_keys,
                 raw=True
             ),
             axis=0
         ) == 0
-    data_stream_object.data_stream = data_stream_object.data_stream[:, zeros]
-    data_stream_object.time_stream = data_stream_object.time_stream[zeros]
-    data_stream_object.re_average_data()
-    return data_stream_object
+    datastream_object.data_stream = datastream_object.data_stream[:, zeros]
+    datastream_object.time_stream = datastream_object.time_stream[zeros]
+    datastream_object.re_average_data()
+    return datastream_object
 
 
 def merge_formating(

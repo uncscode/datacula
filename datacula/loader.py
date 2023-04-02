@@ -4,7 +4,7 @@
 # flake8: noqa
 # pytype: skip-file
 
-import glob, os
+import glob, os, pickle
 import numpy as np
 from datetime import datetime
 from datacula import convert
@@ -245,6 +245,144 @@ def get_files_in_folder_with_size(
     return file_list, full_path, file_size
 
 
+def save_datalake(path: str, data_lake: object = None, sufix_name: str = None):
+    """
+    Save datalake object as a pickle file.
 
+    Parameters
+    ----------
+    data_lake : DataLake
+        DataLake object to be saved.
+    path : str
+        Path to save pickle file.
+    sufix_name : str, optional
+        Suffix to add to pickle file name. The default is None.
+    """
+    # create output folder if it does not exist
+    output_folder = os.path.join(path, 'output')
+    os.makedirs(output_folder, exist_ok=True)
+    
+    # add suffix to file name if present
+    if sufix_name is not None:
+        file_name = f'datalake_{sufix_name}.pk'
+    else:
+        file_name = 'datalake.pk'
+
+    # path to save pickle file
+    file_path = os.path.join(output_folder, file_name)
+
+    # save datalake
+    with open(file_path, 'wb') as f:
+        pickle.dump(data_lake, f)
+
+
+def load_datalake(path: str) -> object:
+    """
+    Load datalake object from a pickle file.
+
+    Parameters
+    ----------
+    path : str
+        Path to load pickle file.
+
+    Returns
+    -------
+    data_lake : DataLake
+        Loaded DataLake object.
+    """
+    # path to load pickle file
+    file_path = os.path.join(path, 'output', 'datalake.pk')
+
+    # load datalake
+    with open(file_path, 'rb') as f:
+        data_lake = pickle.load(f)
+
+    return data_lake
+
+
+def datastream_to_csv(
+        datastream,
+        path,
+        filename,
+        header_keys=None,
+        time_shift_sec=0,
+        ):
+    """
+    Function to save a datastream to a csv file.
+    TODO: remove the pandas dependency
+    
+    Parameters
+    ----------
+    datastream : DataStream
+        DataStream object to be saved
+    path : str
+        path to save the csv file
+    time_shift_sec : int, optional
+        time shift in seconds, by default 0
+    """
+
+    # save the data streams to text files
+    data = datastream.return_data(keys=header_keys)
+    time = loader.datetime64_from_epoch_array(
+            datastream.return_time(datetime64=False),
+            delta=time_shift_sec
+        )
+
+    if header_keys is None:
+        header = list(datastream.return_header_list())
+    else:
+        header = header_keys
+
+    combo = pd.DataFrame(data.T, index=time, columns=header)
+    combo.index.name = 'DateTime'
+
+    # add output folder to path if not already present
+    output_folder = os.path.join(path, 'output')
+    if not os.path.exists(output_folder):
+        os.makedirs(output_folder)
+
+    save_path = os.path.join(path, 'output', filename+'.csv')
+    combo.to_csv(save_path, sep=',', index=True)
+
+
+def datalake_to_csv(
+        datalake,
+        path,
+        time_shift_sec=0,
+        keys=None,
+        sufix_name=None,
+        ):
+    """
+    Function to save a datalake to a csv file. Iterates through the datastreams,
+    or just the keys specified.
+
+    Parameters
+    ----------
+    datalake : DataLake
+        object of datastreams be saved
+    path : str
+        path to save the csv file
+    time_shift_sec : int, optional
+        time shift in seconds, by default 0
+    keys : list, optional
+        list of keys to save, by default None
+    """
+
+    if keys is None:
+        keys = list(datalake.datastreams.keys())
+
+    for key in keys:
+        if sufix_name is not None:
+            save_name = key + '_' + sufix_name
+        else:
+            save_name = key
+
+        datastream_to_csv(
+            datastream=datalake.datastreams[key],
+            path=path,
+            filename=save_name,
+            time_shift_sec=time_shift_sec,
+        )
+        print('saved: ', key)
 
 
