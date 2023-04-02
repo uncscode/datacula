@@ -1,7 +1,6 @@
 """Test the convert module."""
 
 import numpy as np
-import pytest
 from datacula import stats
 
 
@@ -86,7 +85,7 @@ def test_average_to_interval():
                     934.34343434]
             ]
         )
-    
+
     expeced_std = np.array(
             [
                 [0.0, 17.250, 17.250, 17.250, 17.250,
@@ -103,7 +102,6 @@ def test_average_to_interval():
                     17.250, 17.250]
             ]
         )
-    
+
     assert np.allclose(average_base_data, expected_data, rtol=1e-3)
     assert np.allclose(average_base_data_std, expeced_std, rtol=1e-3)
-
