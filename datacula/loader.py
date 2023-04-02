@@ -230,9 +230,10 @@ def sample_data(
             delimiter: str,
             date_offset: str = None,
             seconds_shift: int = 0,
-        ) -> Tuple[np.array, np.array]: # noqa: C901
+        ) -> Tuple[np.array, np.array]:  # noqa C901
     """
     Samples the data to get the time and data streams.
+    TODO: revise this function
     """
     epoc_time = np.zeros(len(data))
     data_array = np.zeros((len(data), len(data_columns)))
