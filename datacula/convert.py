@@ -384,7 +384,7 @@ def convert_sizer_dn(
             dn_dlogdp: np.ndarray
         ) -> np.ndarray:
     """
-    Converts the sizer data from dn/dlogdp to dn.
+    Converts the sizer data from dn/dlogdp to d_num.
 
     The bin width is defined as the  difference between the upper and lower
     diameter limits of each bin. This function calculates the bin widths
@@ -401,6 +401,11 @@ def convert_sizer_dn(
         np.ndarray: Array of number concentration of particles
         per unit diameter.
 
+    References:
+    -----------
+    Eq: dN/dlogD_p = dN/( log(D_{p-upper}) - log(D_{p-lower}) )
+    https://tsi.com/getmedia/1621329b-f410-4dce-992b-e21e1584481a/PR-001-RevA_Aerosol-Statistics-AppNote?ext=.pdf
+
     # TODO: Address potential over-counting in last/first bin
     """
     assert len(diameter) == len(dn_dlogdp) > 0, \
@@ -416,9 +421,9 @@ def convert_sizer_dn(
     upper = diameter + delta/2
 
     # Convert from dn/dlogdp to dn
-    dn_dp = dn_dlogdp * np.log10(upper/lower)
+    d_num = dn_dlogdp * np.log10(upper/lower)
 
-    return dn_dp
+    return d_num
 
 
 def datetime64_from_epoch_array(
