@@ -26,7 +26,7 @@ class DataLake():
             names of the datastreams, and the values should be dictionaries
             containing the settings for each datastream.
         path (str): The path to the data to be read in. Default is None.
-        UTC_to_local (int): The UTC to local time offset in hours.
+        utc_to_local (int): The UTC to local time offset in hours.
             Default is 0.
 
     Methods:
@@ -54,7 +54,7 @@ class DataLake():
                 self,
                 settings: dict,
                 path: str = None,
-                UTC_to_local: int = 0
+                utc_to_local: int = 0
             ):
         """
         Initializes the DataLake object.
@@ -67,14 +67,14 @@ class DataLake():
                 dictionaries containing the settings for each datastream.
             path (str, optional): The path to the data to be read in.
                 Default is None.
-            UTC_to_local (int, optional): The UTC to local time offset
+            utc_to_local (int, optional): The UTC to local time offset
                 in hours. Default is 0. TODO: add UTC time zone support
         """
         self.settings = settings
         self.path_to_data = path
         # dictionary of datastreams to be filled in by the add_data function
         self.datastreams = {}
-        self.UTC_to_local = UTC_to_local
+        self.utc_to_local = utc_to_local
 
     def list_datastream(self) -> list:
         """
@@ -99,7 +99,7 @@ class DataLake():
         ----------
             None.
         """
-        for key in self.settings.keys():
+        for key in self.settings:
             if key in self.datastreams.keys():
                 self.update_data(key)
             else:
@@ -250,7 +250,7 @@ class DataLake():
         ----------
             None.
         """
-        epoch_time, dp_header, data_2D, data_1D = self.import_sizer_data(
+        epoch_time, dp_header, data_2d, data_1d = self.import_sizer_data(
                 path=path,
                 key=key
             )
@@ -269,11 +269,11 @@ class DataLake():
                 )
         self.datastreams[self.settings[key]['data_stream_name'][0]].add_data(
                     time_stream=epoch_time,
-                    data_stream=data_1D,
+                    data_stream=data_1d,
                 )
         self.datastreams[self.settings[key]['data_stream_name'][1]].add_data(
                     time_stream=epoch_time,
-                    data_stream=data_2D,
+                    data_stream=data_2d,
                     header_check=True,
                     header=dp_header
                 )
@@ -345,7 +345,7 @@ class DataLake():
             date_offset = None
 
         # Format the data
-        epoch_time, dp_header, data_2D, data_1D = loader.sizer_data_formatter(
+        epoch_time, dp_header, data_2d, data_1d = loader.sizer_data_formatter(
             data=data,
             data_checks=self.settings[key]['data_checks'],
             data_sizer_reader=self.settings[key]['data_sizer_reader'],
@@ -356,10 +356,10 @@ class DataLake():
         )
 
         # Transpose the data
-        data_2D = data_2D.T
-        data_1D = data_1D.T
+        data_2d = data_2d.T
+        data_1d = data_1d.T
 
-        return epoch_time, dp_header, data_2D, data_1D
+        return epoch_time, dp_header, data_2d, data_1d
 
     def import_general_data(
                 self,
@@ -423,7 +423,7 @@ class DataLake():
             zeros_keys = ['CAPS_dual', 'pass3']
 
         for key in zeros_keys:
-            if key in self.datastreams.keys():
+            if key in self.datastreams:
                 if key == 'CAPS_dual':
                     self.datastreams['CAPS_dual'] = stats.drop_zeros(
                             datastream_object=self.datastreams['CAPS_dual'],

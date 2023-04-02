@@ -1,4 +1,8 @@
 """stats module for datacula"""
+# linting disabled until reformatting of this file
+# pylint: disable=all
+# flake8: noqa
+# pytype: skip-file
 
 from typing import Union, Tuple
 import numpy as np
