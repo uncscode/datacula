@@ -5,6 +5,7 @@ from datacula import loader
 
 
 def test_filter_list():
+    """Test the filter_list function."""
     data = ['apple,banana,orange', 'pear,kiwi,plum', 'grapefruit,lemon']
     char_counts = {',': 2}
     filtered_data = loader.filter_list(data, char_counts)
@@ -27,6 +28,7 @@ def test_filter_list():
 
 
 def test_parse_time_column():
+    """Test the parse_time_column function."""
     line = '2022-01-01 12:00:00,0.5,0.6'.split(',')
     time_format = '%Y-%m-%d %H:%M:%S'
     expected_timestamp = datetime(2022, 1, 1, 12, 0, 0).timestamp()

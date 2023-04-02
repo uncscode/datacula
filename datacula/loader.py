@@ -1,8 +1,7 @@
 """File readers and loaders for datacula."""
+# pylint: disable=too-many-arguments
 
 from typing import List, Union, Tuple, Dict, Any
-from datetime import datetime
-from datacula import convert
 
 import warnings
 import glob
@@ -10,7 +9,8 @@ import os
 import pickle
 import numpy as np
 import pandas as pd
-
+from datetime import datetime
+from datacula import convert
 
 FILTER_WARNING_FRACTION = 0.5
 
@@ -230,7 +230,7 @@ def sample_data(
             delimiter: str,
             date_offset: str = None,
             seconds_shift: int = 0,
-        ) -> Tuple[np.array, np.array]:
+        ) -> Tuple[np.array, np.array]: # noqa: C901
     """
     Samples the data to get the time and data streams.
     """

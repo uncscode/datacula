@@ -183,7 +183,7 @@ class DataLake():
             self.path_to_data,
             self.settings[key]['relative_data_folder'],
             self.settings[key]['filename_regex'],
-            size=10)
+            min_size=10)
         first_pass = True
         # load the data type
         for path in full_paths:
