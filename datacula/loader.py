@@ -146,7 +146,7 @@ def data_format_checks(data: List[str], data_checks: dict) -> List[str]:
                     )
                 ]
 
-    if len(data) / len(length_initial) < FILTER_WARNING_FRACTION:
+    if len(data) / length_initial < FILTER_WARNING_FRACTION:
         warnings.warn(
             f"More than {FILTER_WARNING_FRACTION} of the rows have " +
             'been filtered out based on the characters limit ' +
