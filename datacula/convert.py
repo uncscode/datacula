@@ -445,8 +445,8 @@ def datetime64_from_epoch_array(
             epoch times.
     """
     assert len(epoch_array) > 0, "Input epoch_array must not be empty."
-    assert np.issubdtype(epoch_array.dtype, np.integer), \
-        "Input epoch_array must be an array of integers."
+    # assert np.issubdtype(epoch_array.dtype, np.integer), \
+    #     "Input epoch_array must be an array of integers."
 
     # Convert epoch times to datetime64 objects with an optional offset
     return np.array(
