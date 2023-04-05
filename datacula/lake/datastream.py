@@ -175,10 +175,10 @@ class DataStream():
             # updates header_dict
             self.header_dict = convert.list_to_dict(self.header_list)
             self.data_stream = np.hstack((self.data_stream, data_stream))
-            self.time_stream = np.vstack((self.time_stream, time_stream))
+            self.time_stream = np.concatenate((self.time_stream, time_stream))
         else:
             self.data_stream = np.hstack((self.data_stream, data_stream))
-            self.time_stream = np.vstack((self.time_stream, time_stream))
+            self.time_stream = np.concatenate((self.time_stream, time_stream))
 
         # check if the time stream added is increasing
         increasing_time = np.all(
