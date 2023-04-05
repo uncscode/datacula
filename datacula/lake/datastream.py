@@ -243,7 +243,7 @@ class DataStream():
             )
 
         self.header_dict = convert.list_to_dict(self.header_list)
-        self.reaverage_data()
+        self.reaverage()
 
     def merge_different_headers(
             self,
@@ -382,7 +382,7 @@ class DataStream():
                 average_base_data_std=self.average_base_data_std,
             )
 
-    def reaverage_data(
+    def reaverage(
                 self,
                 reaverage_base_sec: Optional[float] = None,
                 epoch_start: Optional[float] = None,
