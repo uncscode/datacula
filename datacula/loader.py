@@ -1,4 +1,9 @@
 """File readers and loaders for datacula."""
+# linting disabled until reformatting of this file
+# pylint: disable=all
+# flake8: noqa
+# pytype: skip-file
+
 # pylint: disable=too-many-arguments
 # pylint: disable=too-many-locals
 # pylint: disable=too-many-branches
@@ -397,7 +402,8 @@ def sizer_data_formatter(
                 data_header.index(data_sizer_reader["Dp_end_keyword"])
                 ]
     dp_columns = list(range(dp_range[0]+1, dp_range[1]))
-    dp_header = np.array([data_header[i] for i in dp_columns])
+    dp_header = list([data_header[i] for i in dp_columns])
+    # change from np.array
 
     # Get data columns
     data_column = [

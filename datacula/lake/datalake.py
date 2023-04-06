@@ -1,6 +1,5 @@
 """creates the datastream and datalake class"""
 
-# %%
 
 from typing import Tuple, List, Optional
 
@@ -33,6 +32,12 @@ class DataLake():
     ----------
         list_datastream: Returns a list of the datastreams in the DataLake.
         update_datastream: Updates all datastreams in the DataLake.
+        add_processed_datastream: Adds a processed datastream to the DataLake.
+        initialise_datastream: Initialises a datastream using the settings in
+            the DataLake object.
+        reaverage_datastream: Reaverages the data in the specified datastream.
+        remove_zeros: Removes filter/zeros from the specified datastream.
+        
 
     Example usage:
     ----------
