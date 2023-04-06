@@ -597,18 +597,16 @@ class DataStream():
         if raw:
             if datetime64:
 
-                raise NotImplementedError  # TODO: implement this
+                raise NotImplementedError  # not working implement this
 
                 # return convert.datetime64_from_epoch_array(
                 #     self.time_stream)
-            else:
-                return self.time_stream
+            return self.time_stream
         else:
             if datetime64:
                 return convert.datetime64_from_epoch_array(
                     self.average_base_time)
-            else:
-                return self.average_base_time
+            return self.average_base_time
 
     def return_header_list(self) -> list:
         """Returns the header list. (wrapper)"""

@@ -37,7 +37,6 @@ class DataLake():
             the DataLake object.
         reaverage_datastream: Reaverages the data in the specified datastream.
         remove_zeros: Removes filter/zeros from the specified datastream.
-        
 
     Example usage:
     ----------
