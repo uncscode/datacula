@@ -1,7 +1,7 @@
 [project]
 name = "datacula"
 description = "a python package for atmospheric particle-gas data analysis and visualization"
-readme = "readme"
+readme = "readme.md"
 requires-python = ">=3.9"
 license = {file = "license"}
 authors = [
@@ -23,7 +23,7 @@ keywords = [
 dependencies = [
     "matplotlib", "numpy", "scipy", "ipython", "tqdm",
     "PyMieScatt", "particula", "scheduler", "pylint","flake8",
-    "jupyter-book", "ghp-import", "ipykernel",
+    "jupyter-book", "ghp-import", "ipykernel", "pandas",
 ]
 
 # This is set automatically by flit using `datacula.__version__`

@@ -20,5 +20,9 @@ The development of this package will be illustrated through Jupyter notebooks ([
 
 For development, you can fork this repository and then install `particula` in an editable (`-e`) mode --- this is achieved by `pip install -e ".[dev]"` in the root of this repository. Invoking `pip install -e ".[dev]"` will install `particula`, its runtime requirements, and the development and test requirements. The editable mode is useful because it allows seeing the manifestation of code edits globally through the `particula` package in your environment (in a way, with the `-e` mode, `particula` self-updates to account for the latest local code edits).
 
+## Python version
+
+We support python 3.9 and above. To check your python version, run `python --version` in your terminal. To upgrade your python version, run `pip install --upgrade python` or with conda `conda install python=3.10`.
+
 ## Tour & Examples
 TBD

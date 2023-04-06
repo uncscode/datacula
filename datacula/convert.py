@@ -1,7 +1,7 @@
 """conversion functions common for aerosol processing
 """
 
-from typing import Union, Tuple
+from typing import Union, Tuple, Any, List, Dict
 import numpy as np
 
 
@@ -33,6 +33,7 @@ def round_arbitrary(
     round to 2.0, -0.5 and 0.5 round to 0.0, etc.
 
     Parameters:
+    -----------
         values: The values to be rounded.
         base: The base to which the values should be rounded.
         mode: The rounding mode: 'round', 'floor', 'ceil'
@@ -40,6 +41,7 @@ def round_arbitrary(
         by the original values.
 
     Returns:
+    -----------
         rounded: The rounded values.
     """
     # Check if values is a NumPy array
@@ -78,11 +80,13 @@ def radius_diameter(value: float, to_diameter: bool = True) -> float:
     Convert a radius to a diameter, or vice versa.
 
     Parameters:
+    -----------
         value: The value to be converted.
         to_diameter: If True, convert from radius to diameter.
         If False, convert from diameter to radius.
 
     Returns:
+    -----------
         The converted value.
     """
     if to_diameter:
@@ -95,11 +99,13 @@ def volume_to_length(volume: float, length_type: str = 'radius') -> float:
     Convert a volume to a radius or diameter.
 
     Parameters:
+    -----------
         volume: The volume to be converted.
         length_type: The type of length to convert to ('radius' or 'diameter')
         Default is 'radius'.
 
     Returns:
+    -----------
         The converted length.
     """
 
@@ -118,11 +124,13 @@ def length_to_volume(length: float, length_type: str = 'radius') -> float:
     Convert radius or diameter to volume.
 
     Parameters:
+    -----------
         length: The length to be converted.
         length_type: The type of length ('radius' or 'diameter').
             Default is 'radius'.
 
     Returns:
+    --------
         The volume.
     """
     if length_type == 'diameter':
@@ -144,11 +152,13 @@ def kappa_volume_solute(
     given the kappa parameter and water activity.
 
     Parameters:
+    -----------
         volume_total: The volume of the total solution.
         kappa: The kappa parameter.
         water_activity: The water activity.
 
     Returns:
+    --------
         The volume of solute as a numpy array.
     """
 
@@ -170,11 +180,13 @@ def kappa_volume_water(
     and water activity.
 
     Parameters:
+    -----------
         volume_solute: The volume of solute.
         kappa: The kappa parameter.
         water_activity: The water activity.
 
     Returns:
+    --------
         The volume of water as a float.
     """
     # Avoid division by zero
@@ -193,11 +205,13 @@ def kappa_from_volume(
     given the water activity.
 
     Parameters:
+    -----------
         volume_solute: The volume of solute.
         volume_water: The volume of water.
         water_activity: The water activity.
 
     Returns:
+    --------
         The kappa parameter as a float.
     """
     # Avoid division by zero
@@ -215,11 +229,13 @@ def mole_fraction_to_mass_fraction(
     Convert mole fraction to mass fraction.
 
     Parameters:
+    -----------
         mole_fraction0: The mole fraction of the first component.
         molecular_weight0: The molecular weight of the first component.
         molecular_weight1: The molecular weight of the second component.
 
     Returns:
+    -----------
         A tuple containing the mass fractions of the two components as floats.
     """
     mass_fraction0 = mole_fraction0 * molecular_weight0 / (
@@ -238,10 +254,12 @@ def mole_fraction_to_mass_fraction_multi(
     Assumes that sum(mole_fractions) == 1.
 
     Parameters:
+    -----------
         mole_fractions: A list of mole fractions.
         molecular_weights: A list of molecular weights.
 
     Returns:
+    --------
         A list of mass fractions.
     """
     if np.sum(mole_fractions) != 1:
@@ -257,23 +275,64 @@ def mole_fraction_to_mass_fraction_multi(
 
 
 def mass_fraction_to_volume_fraction(
-    mass_fraction0: float, density0: float, density1: float
-) -> Tuple[float, float]:
-    """Convert mass fraction to volume fraction"""
-    volume_fraction0 = (mass_fraction0 / density0) / (
-        mass_fraction0 / density0 + (1 - mass_fraction0) / density1
-    )
-    volume_fraction1 = 1 - volume_fraction0
-    return volume_fraction0, volume_fraction1
+            mass_fraction: float,
+            density_solute: float,
+            density_solvent: float
+        ) -> Tuple[float, float]:
+    """
+    Converts the mass fraction of a solute to the volume fraction in a
+    binary mixture.
+
+    Parameters:
+    -----------
+        mass_fraction (float): The mass fraction of the solute in the mixture.
+        density_solute (float): The density of the solute.
+        density_solvent (float): The density of the solvent.
+
+    Returns:
+    -----------
+        Tuple[float, float]: A tuple containing the volume fraction of the
+            solute and solvent in the mixture.
+
+    Example:
+    -----------
+        If `mass_fraction` is 0.5, `density_solute` is 1.5 g/cm^3, and
+        `density_solvent` is 2 g/cm^3, this function returns (0.5714, 0.4285),
+        indicating that the solute and solvent occupy 57% and 42% of the
+        mixture's volume, respectively.
+    """
+    volume_fraction_solute = (mass_fraction / density_solute
+                              / (mass_fraction / density_solute
+                                 + (1 - mass_fraction) / density_solvent)
+                              )
+    volume_fraction_solvent = 1 - volume_fraction_solute
+    return volume_fraction_solute, volume_fraction_solvent
 
 
 def volume_water_from_volume_fraction(
-    volume_solute_dry: float,
-    volume_fraction_water: float
-) -> float:
+            volume_solute_dry: float,
+            volume_fraction_water: float
+        ) -> float:
     """
-    Calculate the volume of water in a volume of solute,
-    given the volume fraction of water.
+    Calculates the volume of water in a volume of solute, given the volume
+    fraction of water in the mixture.
+
+    Parameters:
+    -----------
+        volume_solute_dry (float): The volume of the solute, excluding water.
+        volume_fraction_water (float): The volume fraction of water in the
+                            mixture, expressed as a decimal between 0 and 1.
+
+    Returns:
+    -----------
+        float: The volume of water in the mixture, in the same units as
+            `volume_solute_dry`.
+
+    Example:
+    -----------
+        If `volume_solute_dry` is 100 mL and `volume_fraction_water` is 0.8,
+        this function returns 400 mL, indicating that there are 400 mL of water
+        in the total 100 mL + 400 mL mixture.
     """
     return volume_fraction_water * volume_solute_dry / (
         1 - volume_fraction_water
@@ -286,21 +345,24 @@ def effective_refractive_index(
             volume_zero: float,
             volume_one: float
         ) -> Union[float, complex]:
-    """Calculate the refractive index of a mixture of two solutes,
-    given the refractive index of each solute and the volume of each solute.
-    The volume can be volume fractions.
-    The mixing is based on volume weight molar refraction.
+    """
+    Calculate the effective refractive index of a mixture of two solutes, given
+    the refractive index of each solute and the volume of each solute. The
+    mixing is based on volume-weighted molar refraction.
 
     Parameters:
-        m0: Refractive index of solute 0.
-        m_one: Refractive index of solute 1.
-        volume0: Volume of solute 0.
-        volume_one: Volume of solute 1.
+    -----------
+        m_zero (float or complex): The refractive index of solute 0.
+        m_one (float or complex): The refractive index of solute 1.
+        volume_zero (float): The volume of solute 0.
+        volume_one (float): The volume of solute 1.
 
     Returns:
+    -----------
         The effective refractive index of the mixture.
 
     Reference:
+    -----------
         Liu, Y., &#38; Daum, P. H. (2008).
         Relationship of refractive index to mass density and self-consistency
         mixing rules for multicomponent mixtures like ambient aerosols.
@@ -317,76 +379,141 @@ def effective_refractive_index(
     return (2*r_effective + 1) / (1-r_effective)
 
 
-# continue refactor from here:
-
 def convert_sizer_dn(
             diameter: np.ndarray,
             dn_dlogdp: np.ndarray
         ) -> np.ndarray:
     """
-    Converts the sizer data from dn/dlogdp to dn
-    TODO: fix the over counting of the last bin or first?
-    and write a test for this
+    Converts the sizer data from dn/dlogdp to d_num.
+
+    The bin width is defined as the  difference between the upper and lower
+    diameter limits of each bin. This function calculates the bin widths
+    based on the input diameter array. Assumes a log10 scale for dp edges.
 
     Parameters:
-        diameter : diameter array
-        dn_dlogdp : dn/dlogdp array
+    -----------
+        diameter (np.ndarray): Array of particle diameters.
+        dn_dlogdp (np.ndarray): Array of number concentration of particles per
+        unit logarithmic diameter.
 
     Returns:
-        dn array
-    """
+    -----------
+        np.ndarray: Array of number concentration of particles
+        per unit diameter.
 
+    References:
+    -----------
+    Eq: dN/dlogD_p = dN/( log(D_{p-upper}) - log(D_{p-lower}) )
+    https://tsi.com/getmedia/1621329b-f410-4dce-992b-e21e1584481a/PR-001-RevA_Aerosol-Statistics-AppNote?ext=.pdf
+
+    # TODO: Address potential over-counting in last/first bin
+    """
+    assert len(diameter) == len(dn_dlogdp) > 0, \
+        "Inputs must be non-empty arrays of the same length."
+
+    # Compute the bin widths
     delta = np.zeros_like(diameter)
     delta[:-1] = np.diff(diameter)
     delta[-1] = delta[-2]**2/delta[-3]
 
-    lower = diameter-delta/2
-    upper = diameter+delta/2
+    # Compute the lower and upper bin edges
+    lower = diameter - delta/2
+    upper = diameter + delta/2
 
-    return dn_dlogdp*np.log10(upper/lower)
+    # Convert from dn/dlogdp to dn
+    d_num = dn_dlogdp * np.log10(upper/lower)
+
+    return d_num
 
 
 def datetime64_from_epoch_array(
-            epoch_array: np.ndarray,
-            delta: int = 0
-        ) -> np.datetime64:
+        epoch_array: np.ndarray,
+        delta: int = 0) -> np.ndarray:
     """
     Converts an array of epoch times to a numpy array of datetime64 objects.
+
+    Parameters:
+    -----------
+        epoch_array (np.ndarray): Array of epoch times (in seconds since
+            the Unix epoch).
+        delta (int): An optional offset (in seconds) to add to the epoch times
+            before converting to datetime64 objects.
+
+    Returns:
+    --------
+        np.ndarray: Array of datetime64 objects corresponding to the input
+            epoch times.
     """
+    assert len(epoch_array) > 0, "Input epoch_array must not be empty."
+    # assert np.issubdtype(epoch_array.dtype, np.integer), \
+    #     "Input epoch_array must be an array of integers."
+
+    # Convert epoch times to datetime64 objects with an optional offset
     return np.array(
         [np.datetime64(int(epoch+delta), 's') for epoch in epoch_array]
-    )
+        )
 
 
 def list_to_dict(list_of_str: list) -> dict:
     """
     Converts a list of strings to a dictionary. The keys are the strings
     and the values are the index of the string in the list.
+
+    Parameters:
+    -----------
+        list_of_str (list): A non-empty list of strings.
+
+    Returns:
+    --------
+        dict: A dictionary where the keys are the strings and the values are
+            the index of the string in the list.
     """
-    return {list_of_str[i]: i for i in range(len(list_of_str))}
+    assert len(list_of_str) > 0, "Input list_of_str must not be empty."
+    assert all(isinstance(item, str) for item in list_of_str), \
+        "Input list_of_str must contain only strings."
+
+    # Create a dictionary from the list of strings using a dictionary
+    # comprehension
+    return {str_val: i for i, str_val in enumerate(list_of_str)}
 
 
-def get_values_in_dict(key_list: list, dict_to_check: dict) -> list:
+def get_values_in_dict(
+            key_list: List[str],
+            dict_to_check: Dict[str, Any]
+        ) -> List[Any]:
     """
-    Checks if keys in a list are in a dictionary. And get the values of the key
+    Returns a list of values for keys in a dictionary.
 
-    Parameters
-    ----------
-    key_list : list
-        List of keys to check.
-    dict_to_check : dict
-        Dictionary to check.
+    Parameters:
+    -----------
+    key_list : List[str]
+        List of keys to check in the dictionary.
+    dict_to_check : Dict[str, Any]
+        The dictionary to check for the given keys.
 
-    Returns
+    Returns:
+    --------
+    List[Any]
+        A list of values for keys in the dictionary.
+
+    Raises:
     -------
-    list
-        List of values of the keys in the dictionary.
+    KeyError:
+        If any of the keys in the `key_list` are not present in the dictionary.
+
+    Example:
+    --------
+    >>> my_dict = {'a': 1, 'b': 2, 'c': 3}
+    >>> get_values_in_dict(['a', 'c'], my_dict)
+    [1, 3]
     """
-    good_keys = []
+    values = []
     for key in key_list:
         if key in dict_to_check:
-            good_keys.append(dict_to_check[key])
+            values.append(dict_to_check[key])
         else:
-            print(dict_to_check.keys())
-            raise KeyError(f"key {key} not in dictionary")
-    return good_keys
+            raise KeyError(
+                f"Key '{key}' not found in the dictionary. Available keys:" +
+                f"{list(dict_to_check.keys())}"
+            )
+    return values
