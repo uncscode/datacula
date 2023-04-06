@@ -22,7 +22,7 @@ For development, you can fork this repository and then install `particula` in an
 
 ## Python version
 
-We support python 3.9 and above. To check your python version, run `python --version` in your terminal. To upgrade your python version, run `pip install --upgrade python` or with conda `conda install python=3.10`.
+We support python 3.9 and above. To check your python version, run `python --version` in your terminal. To upgrade your python version, run `pip install --upgrade python` or with conda `conda install python=3.11`.
 
 ## Tour & Examples
 TBD
