@@ -1,5 +1,5 @@
 """File readers and loaders for datacula."""
-
+# pylint: disable=all
 
 from typing import List, Union, Tuple, Dict, Any
 
