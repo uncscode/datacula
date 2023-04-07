@@ -1,13 +1,6 @@
 """File readers and loaders for datacula."""
-# linting disabled until reformatting of this file
-# pylint: disable=all
-# flake8: noqa
-# pytype: skip-file
 
-# pylint: disable=too-many-arguments
-# pylint: disable=too-many-locals
-# pylint: disable=too-many-branches
-# noaq: C901
+
 from typing import List, Union, Tuple, Dict, Any
 
 import warnings
@@ -227,82 +220,87 @@ def parse_time_column(
 
 
 def sample_data(
-            data: list,
+            data: List[str],
             time_column: int,
             time_format: str,
-            data_columns: list,
+            data_columns: List[int],
             delimiter: str,
             date_offset: str = None,
             seconds_shift: int = 0,
-        ) -> Tuple[np.array, np.array]:
+        ) -> Tuple[np.ndarray, np.ndarray]:
     """
     Samples the data to get the time and data streams.
-    TODO: revise this function
+
+    Parameters:
+    -----------
+    data : List[str]
+        The input data in the form of a list of strings.
+    time_column : int
+        The index of the column that contains the time values.
+    time_format : str
+        The format string that specifies the time format.
+    data_columns : List[int]
+        The indices of the columns that contain the data values.
+    delimiter : str
+        The delimiter character used to separate columns in the input data.
+    date_offset : str, optional
+        A string that represents an offset in the date, in the format
+        'days:hours:minutes:seconds'. Defaults to None.
+    seconds_shift : int, optional
+        An integer that represents a time shift in seconds. Defaults to 0.
+
+    Returns:
+    --------
+    Tuple[np.ndarray, np.ndarray]
+        A tuple of two numpy arrays - epoch_time and data_array:
+        - epoch_time : np.ndarray
+            A 1-D numpy array of epoch times.
+        - data_array : np.ndarray
+            A 2-D numpy array of data values.
+
+    Raises:
+    -------
+    ValueError:
+        - If the data value is not in the correct format.
+        - If no match for data value is found.
     """
-    epoc_time = np.zeros(len(data))
+    epoch_time = np.zeros(len(data))
     data_array = np.zeros((len(data), len(data_columns)))
 
     for i, line in enumerate(data):
-        line_array = line.split(delimiter)  # split the line into an array
+        # split the line into an array
+        line_array = np.array(line.split(delimiter))
 
-        epoc_time[i] = parse_time_column(
-                time_column=time_column,
-                time_format=time_format,
-                line=line_array,
-                date_offset=date_offset,
-                seconds_shift=seconds_shift
+        epoch_time[i] = parse_time_column(
+            time_column=time_column,
+            time_format=time_format,
+            line=line_array,
+            date_offset=date_offset,
+            seconds_shift=seconds_shift
         )
 
-        for j, col in enumerate(data_columns):
-            if col < len(line_array):
-                value = line_array[col].strip()
-            else:
-                value = ''
+        values = line_array[data_columns]
+        try:
+            data_array[i] = values.astype(float)
+        except ValueError:
+            bool_true = np.isin(values, ['ON', 'on', 'On', 'oN', '1', 'True',
+                                         'TRUE', 'tRUE', 't', 'T', 'Yes',
+                                         'yES', 'y', 'Y', 'true', 'yes',
+                                         'YES'])
+            bool_false = np.isin(values, ['OFF', 'off', 'Off', 'oFF', '0',
+                                          'False', 'false', 'FALSE', 'fALSE',
+                                          'F', 'No', 'no', 'NO', 'nO', 'n',
+                                          'N', 'f'])
+            bool_nan = np.isin(values, ['NaN', 'nan', 'Nan', 'nAN', 'NAN', 'NaN',
+                                         'nAn', 'naN', 'NA', 'Na', 'nA', 'na',
+                                         'N', 'n', '', 'aN', 'null', 'NULL', 'Null',
+                                         '-99999', '-9999'])
+            # regex may be faster, if it can be vectorized
+            data_array[i][bool_true] = 1
+            data_array[i][bool_false] = 0
+            data_array[i][bool_nan] = np.nan
 
-            if value == '':  # no data
-                data_array[i, j] = np.nan
-            elif value.count('�') > 0:
-                data_array[i, j] = np.nan
-            elif value[0].isnumeric():  # if the first character is a number
-                data_array[i, j] = float(value)
-            elif value[-1].isnumeric():
-                data_array[i, j] = float(value)
-            elif value[0] == '-':
-                data_array[i, j] = float(value)
-            elif value[0] == '+':
-                data_array[i, j] = float(value)
-            elif value[0] == '.':
-                data_array[i, j] = float(value)
-            elif value.isalpha():
-                true_match = [
-                        'ON', 'on', 'On', 'oN', '1', 'True', 'true',
-                        'TRUE', 'tRUE', 't', 'T', 'Yes', 'yes', 'YES',
-                        'yES', 'y', 'Y'
-                    ]
-                false_match = [
-                        'OFF', 'off', 'Off', 'oFF', '0',
-                        'False', 'false', 'FALSE', 'fALSE', 'f',
-                        'F', 'No', 'no', 'NO', 'nO', 'n', 'N'
-                    ]
-                nan_match = [
-                        'NaN', 'nan', 'Nan', 'nAN', 'NAN', 'NaN',
-                        'nAn', 'naN', 'NA', 'Na', 'nA', 'na',
-                        'N', 'n', '', 'aN', 'null', 'NULL', 'Null',
-                        '-99999', '-9999'
-                    ]
-
-                if value in true_match:
-                    data_array[i, j] = 1
-                elif value in false_match:
-                    data_array[i, j] = 0
-                elif value in nan_match:
-                    data_array[i, j] = np.nan
-                else:
-                    raise ValueError(
-                        'No DATA match, true or false or nan: ' + value)
-            else:
-                raise ValueError('DATA NOT READING IN CORRECTLY:', value)
-    return epoc_time, data_array
+    return epoch_time, data_array
 
 
 def general_data_formatter(
