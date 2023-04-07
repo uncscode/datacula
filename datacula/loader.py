@@ -291,10 +291,10 @@ def sample_data(
                                           'False', 'false', 'FALSE', 'fALSE',
                                           'F', 'No', 'no', 'NO', 'nO', 'n',
                                           'N', 'f'])
-            bool_nan = np.isin(values, ['NaN', 'nan', 'Nan', 'nAN', 'NAN', 'NaN',
-                                         'nAn', 'naN', 'NA', 'Na', 'nA', 'na',
-                                         'N', 'n', '', 'aN', 'null', 'NULL', 'Null',
-                                         '-99999', '-9999'])
+            bool_nan = np.isin(values, ['NaN', 'nan', 'Nan', 'nAN', 'NAN',
+                                        'nAn', 'naN', 'NA', 'Na', 'nA', 'na',
+                                        'N', 'n', '', 'aN', 'null', 'NULL',
+                                        'Null', 'NaN', '-99999', '-9999'])
             # regex may be faster, if it can be vectorized
             data_array[i][bool_true] = 1
             data_array[i][bool_false] = 0
