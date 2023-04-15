@@ -8,9 +8,7 @@ import numpy as np
 from scipy.interpolate import interp1d
 
 from datacula.mie import kappa_fitting_caps_data
-from datacula.convert import convert_sizer_dn
-from scipy.stats.mstats import gmean
-
+import datacula.size_distribution as size_distribution
 
 def caps_processing(
         datalake: object,
@@ -277,90 +275,12 @@ def ccnc_hygroscopicity(
     return datalake
 
 
-def distribution_mean_properties(
-        sizer_dndlogdp,
-        sizer_diameter,
-        total_concentration=None,
-        sizer_limits=None
-        ):
-    """
-    Calculates the mean properties of the size distribution.
-
-
-    Parameters
-    ----------
-    sizer_dndlogdp : array
-        Concentration of particles in each bin.
-    sizer_diameter : array
-        Bin centers
-    total_concentration : float
-        Total concentration of particles in the distribution.
-    sizer_limits : array, optional
-        The lower and upper limits of the size of interest.
-
-    Returns
-    -------
-    total_concentration : float
-        Total concentration of particles in the distribution.
-    unit_mass_ugPm3 : float
-        Total mass of particles in the distribution.
-    mean_diameter_nm : float
-        Mean diameter of the distribution.
-    mean_vol_diameter_nm : float
-        Mean volume diameter of the distribution.
-
-    """
-    from math import pi
-
-    # convert to dn from dn/dlogDp
-    sizer_dn = convert_sizer_dn(sizer_diameter, sizer_dndlogdp)
-    if total_concentration is not None:
-        sizer_dn = sizer_dn * total_concentration / np.sum(sizer_dn)
-    else:
-        total_concentration = np.sum(sizer_dn)
-
-    if sizer_limits is None:
-        volume = 4*pi/3 *(sizer_diameter/2)**3
-    else:
-        threshold_limits = (sizer_diameter >= sizer_limits[0]) & (sizer_diameter <= sizer_limits[1]) # gets indecies to keep
-        sizer_dn = sizer_dn[threshold_limits]
-        sizer_diameter = sizer_diameter[threshold_limits]
-
-        volume = 4*pi/3 * (sizer_diameter/2)**3
-        total_concentration = np.sum(sizer_dn)
-
-    mass_ugPm3 = volume * sizer_dn *1e-9 # density of 1
-    unit_mass_ugPm3 = np.sum(mass_ugPm3)
-
-    #mean diameter by number
-    normalized = sizer_dn / total_concentration
-    diameter_weighted = normalized * sizer_diameter
-    mean_diameter_nm = np.sum(diameter_weighted)
-
-    #mean diameter by volume, unit density is assumed so mass=volume
-    normalized_vol = mass_ugPm3 / unit_mass_ugPm3
-    diameter_weighted_vol = normalized_vol * sizer_diameter
-    mean_vol_diameter_nm = np.sum(diameter_weighted_vol)
-
-    geometric_mean_diameter_nm = gmean(sizer_diameter, weights=normalized)
-
-    # mode from cumulative sum
-    sizer_dn_cumsum = np.cumsum(sizer_dn)/total_concentration
-
-    mode_diameter = np.interp(0.5, sizer_dn_cumsum, sizer_diameter, left=np.nan, right=np.nan)
-
-    sizer_dmass_cumsum = np.cumsum(mass_ugPm3)/unit_mass_ugPm3
-    mode_diameter_mass = np.interp(0.5, sizer_dmass_cumsum, sizer_diameter, left=np.nan, right=np.nan)
-
-    return total_concentration, unit_mass_ugPm3, mean_diameter_nm, mean_vol_diameter_nm, geometric_mean_diameter_nm, mode_diameter, mode_diameter_mass
-
-
 def sizer_mean_properties(
     datalake,
     ):
     """
     Calculates the mean properties of the size distribution. Using both the
-    smps and aps data. (But does not merge to a signle distribution)
+    smps and aps data. (But does not merge to a single distribution)
 
     Parameters
     ----------
@@ -400,28 +320,28 @@ def sizer_mean_properties(
     unit_mass_ugPm3_PM10 = np.zeros_like(sizer_total_n_smps) * np.nan
 
     for i in range(len(time)):
-        total_concentration_PM800[i], unit_mass_ugPm3_PM800[i], mean_diameter_nm_PM800[i], mean_vol_diameter_nm_PM800[i], geometric_mean_diameter_nm_PM800[i], mode_diameter_PM800[i], mode_diameter_mass_PM800[i] = distribution_mean_properties(
+        total_concentration_PM800[i], unit_mass_ugPm3_PM800[i], mean_diameter_nm_PM800[i], mean_vol_diameter_nm_PM800[i], geometric_mean_diameter_nm_PM800[i], mode_diameter_PM800[i], mode_diameter_mass_PM800[i] = size_distribution.mean_properties(
             sizer_dndlogdp_smps[:, i],
             sizer_diameter_smps,
             sizer_total_n_smps[i],
             sizer_limits=[0, 800]
         )
 
-        total_concentration_PM01[i], unit_mass_ugPm3_PM01[i], _, _, _, _, _ = distribution_mean_properties(
+        total_concentration_PM01[i], unit_mass_ugPm3_PM01[i], _, _, _, _, _ = size_distribution.distribution_mean_properties(
             sizer_dndlogdp_smps[:, i],
             sizer_diameter_smps,
             sizer_total_n_smps[i],
             sizer_limits=[0, 100]
         )
 
-        total_concentration_PM25[i], unit_mass_ugPm3_PM25[i], _, _, _, _, _ = distribution_mean_properties(
+        total_concentration_PM25[i], unit_mass_ugPm3_PM25[i], _, _, _, _, _ = size_distribution.distribution_mean_properties(
             sizer_dndlogdp_aps[:, i],
             sizer_diameter_aps,
             total_concentration=None,
             sizer_limits=[800, 2500]
         )
 
-        total_concentration_PM10[i], unit_mass_ugPm3_PM10[i], _, _, _, _, _ = distribution_mean_properties(
+        total_concentration_PM10[i], unit_mass_ugPm3_PM10[i], _, _, _, _, _ = size_distribution.distribution_mean_properties(
             sizer_dndlogdp_aps[:, i],
             sizer_diameter_aps,
             total_concentration=None,
