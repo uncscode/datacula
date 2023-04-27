@@ -195,6 +195,13 @@ def parse_time_column(
     if time_format == 'epoch':
         # if the time is in epoch format
         return float(line[time_column]) + seconds_shift
+    if date_offset:
+        # if the time is in one column, and the date is fixed
+        time_str = f"{date_offset} {line[time_column]}"
+        return datetime.strptime(
+                                    time_str,
+                                    time_format
+                                ).timestamp() + seconds_shift
     if isinstance(time_column, int):
         # if the time and date are in one column
         return datetime.strptime(
@@ -204,13 +211,6 @@ def parse_time_column(
     if isinstance(time_column, list) and len(time_column) == 2:
         # if the time and date are in two column
         time_str = f"{line[time_column[0]]} {line[time_column[1]]}"
-        return datetime.strptime(
-                                    time_str,
-                                    time_format
-                                ).timestamp() + seconds_shift
-    if date_offset:
-        # if the time is in one column, and the date is fixed
-        time_str = f"{date_offset} {line[time_column]}"
         return datetime.strptime(
                                     time_str,
                                     time_format
