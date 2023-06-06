@@ -300,7 +300,7 @@ def sizer_mean_properties(
 
     time = datalake.datastreams['smps_1D'].return_time(datetime64=False)
     sizer_total_n_smps = datalake.datastreams['smps_1D'].return_data(keys=['Total_Conc_(#/cc)'])[0]
-    sizer_diameter_smps = datalake.datastreams['smps_2D'].return_header_list().astype(float)
+    sizer_diameter_smps = np.array(datalake.datastreams['smps_2D'].return_header_list())
     sizer_dndlogdp_smps = np.nan_to_num(datalake.datastreams['smps_2D'].return_data())
 
     sizer_diameter_aps = datalake.datastreams['aps_2D'].return_header_list().astype(float)*1000

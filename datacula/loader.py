@@ -555,7 +555,7 @@ def save_datalake(path: str, data_lake: object = None, sufix_name: str = None):
         pickle.dump(data_lake, file)
 
 
-def load_datalake(path: str) -> object:
+def load_datalake(path: str, sufix_name: str = None) -> object:
     """
     Load datalake object from a pickle file.
 
@@ -569,8 +569,14 @@ def load_datalake(path: str) -> object:
     data_lake : DataLake
         Loaded DataLake object.
     """
+    # add suffix to file name if present
+    if sufix_name is not None:
+        file_name = f'datalake_{sufix_name}.pk'
+    else:
+        file_name = 'datalake.pk'
+
     # path to load pickle file
-    file_path = os.path.join(path, 'output', 'datalake.pk')
+    file_path = os.path.join(path, 'output', file_name)
 
     # load datalake
     with open(file_path, 'rb') as file:
