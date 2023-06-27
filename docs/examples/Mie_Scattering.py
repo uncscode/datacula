@@ -145,7 +145,7 @@ absorption_dry_soot, extinction_dry_soot, scattering_dry_soot, albedo_dry_soot, 
 
 # sulfate
 absorption_dry_sulfate, extinction_dry_sulfate, scattering_dry_sulfate, albedo_dry_sulfate, absorption_wet_sulfate, extinction_wet_sulfate, scattering_wet_sulfate, albedo_wet_sulfate = optical_coefficients(
-    kappa=0.65,
+    kappa=0.60,
     particle_counts=conc_dn[91:152],
     diameters=diameters[91:152],
     water_activity_sizer=0.1,
