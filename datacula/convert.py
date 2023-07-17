@@ -381,7 +381,8 @@ def effective_refractive_index(
 
 def convert_sizer_dn(
             diameter: np.ndarray,
-            dn_dlogdp: np.ndarray
+            dn_dlogdp: np.ndarray,
+            inverse: bool = False
         ) -> np.ndarray:
     """
     Converts the sizer data from dn/dlogdp to d_num.
@@ -395,6 +396,7 @@ def convert_sizer_dn(
         diameter (np.ndarray): Array of particle diameters.
         dn_dlogdp (np.ndarray): Array of number concentration of particles per
         unit logarithmic diameter.
+        inverse (bool): If True, converts from d_num to dn/dlogdp.
 
     Returns:
     -----------
@@ -404,7 +406,8 @@ def convert_sizer_dn(
     References:
     -----------
     Eq: dN/dlogD_p = dN/( log(D_{p-upper}) - log(D_{p-lower}) )
-    https://tsi.com/getmedia/1621329b-f410-4dce-992b-e21e1584481a/PR-001-RevA_Aerosol-Statistics-AppNote?ext=.pdf
+    https://tsi.com/getmedia/1621329b-f410-4dce-992b-e21e1584481a/
+    PR-001-RevA_Aerosol-Statistics-AppNote?ext=.pdf
 
     # TODO: Address potential over-counting in last/first bin
     """
@@ -420,9 +423,12 @@ def convert_sizer_dn(
     lower = diameter - delta/2
     upper = diameter + delta/2
 
+    if inverse:
+        # Convert from dn to dn/dlogdp
+        return dn_dlogdp / np.log10(upper/lower)
+
     # Convert from dn/dlogdp to dn
     d_num = dn_dlogdp * np.log10(upper/lower)
-
     return d_num
 
 

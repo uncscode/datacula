@@ -40,7 +40,11 @@ def discretize_AutoMieQ(
     -------
     Q_ext, Q_sca, Q_abs, g, Q_pr, Q_back, Q_ratio
     """
-    Q_ext, Q_sca, Q_abs, g, Q_pr, Q_back, Q_ratio = ps.AutoMieQ(m, wavelength, dp, nMedium)
+    Q_ext, Q_sca, Q_abs, g, Q_pr, Q_back, Q_ratio = ps.AutoMieQ(
+        m=m,
+        wavelength=wavelength,
+        diameter=dp,
+        nMedium=nMedium)
     return Q_ext, Q_sca, Q_abs, g, Q_pr, Q_back, Q_ratio
 
 

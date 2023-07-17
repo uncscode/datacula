@@ -216,7 +216,8 @@ def ccnc_hygroscopicity(
     datalake : DataLake
         collection of datastreams.
     supersaturation_bounds : list, optional
-        supersaturation bounds for the activation diameter. The default is [0.3, 0.9].
+        supersaturation bounds for the activation diameter. The default is
+        [0.3, 0.9].
     dp_crit_threshold : float, optional
         dp_crit threshold for the activation diameter. The default is 75 nm.
     
@@ -233,12 +234,17 @@ def ccnc_hygroscopicity(
     """
 
     time = datalake.datastreams['CCNc'].return_time(datetime64=False)
-    ccnc_number = datalake.datastreams['CCNc'].return_data(keys=['CCN_Concentration_[#/cc]'])[0]
-    super_sat_set = datalake.datastreams['CCNc'].return_data(keys=['CurrentSuperSaturationSet[%]'])[0]
-    sizer_total_n = datalake.datastreams['smps_1D'].return_data(keys=['Total_Conc_(#/cc)'])[0]
-    sizer_diameter = datalake.datastreams['smps_2D'].return_header_list().astype(float)
+    ccnc_number = datalake.datastreams['CCNc'].return_data(
+        keys=['CCN_Concentration_[#/cc]'])[0]
+    super_sat_set = datalake.datastreams['CCNc'].return_data(
+        keys=['CurrentSuperSaturationSet[%]'])[0]
+    sizer_total_n = datalake.datastreams['smps_1D'].return_data(
+        keys=['Total_Conc_(#/cc)'])[0]
+    sizer_diameter = datalake.datastreams['smps_2D'].return_header_list(
+        ).astype(float)
     sizer_diameter_fliped = np.flip(sizer_diameter)
-    sizer_dndlogdp = np.nan_to_num(datalake.datastreams['smps_2D'].return_data())
+    sizer_dndlogdp = np.nan_to_num(
+        datalake.datastreams['smps_2D'].return_data())
 
     fitted_dp_crit = np.zeros_like(super_sat_set)
     activated_fraction = np.zeros_like(super_sat_set)

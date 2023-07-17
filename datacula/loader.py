@@ -431,6 +431,23 @@ def sizer_data_formatter(
         date_offset
     )
 
+    if "convert_scale_from" in data_sizer_reader.keys():
+        if data_sizer_reader["convert_scale_from"] == "dw":
+            inverse = True
+        elif data_sizer_reader["convert_scale_from"] == "dw/dlogdp":
+            inverse = False
+        else:
+            raise ValueError(
+                "Invalid value for convert_scale_from in data_sizer_reader. "+\
+                "Either dw/dlogdp or dw must be specified."
+            )
+        for i in range(len(epoch_time)):
+            data_smps_2d[i,:] = convert.convert_sizer_dn(
+                diameter=dp_header,
+                dn_dlogdp=data_smps_2d[i,:],
+                inverse=inverse
+            )
+
     return epoch_time, dp_header, data_smps_2d, data_smps_1d
 
 
