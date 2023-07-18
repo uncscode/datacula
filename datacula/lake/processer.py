@@ -381,12 +381,12 @@ def sizer_mean_properties(
 
     time = datalake.datastreams['smps_1D'].return_time(datetime64=False)
     sizer_total_n_smps = datalake.datastreams['smps_1D'].return_data(keys=['Total_Conc_(#/cc)'])[0]
-    sizer_diameter_smps = datalake.datastreams['smps_2D'].return_header_list().astype(float)
+    sizer_diameter_smps = np.array(datalake.datastreams['smps_2D'].return_header_list()).astype(float)
     sizer_dndlogdp_smps = np.nan_to_num(datalake.datastreams['smps_2D'].return_data())
 
-    sizer_diameter_aps = datalake.datastreams['aps_2D'].return_header_list().astype(float)*1000
-    # TODO: fix aps data to concentrations
-    sizer_dndlogdp_aps = datalake.datastreams['aps_2D'].return_data()/5
+    # sizer_diameter_aps = datalake.datastreams['aps_2D'].return_header_list().astype(float)*1000
+    # # TODO: fix aps data to concentrations
+    # sizer_dndlogdp_aps = datalake.datastreams['aps_2D'].return_data()/5
 
     total_concentration_PM800 = np.zeros_like(sizer_total_n_smps) * np.nan
     unit_mass_ugPm3_PM800 = np.zeros_like(sizer_total_n_smps) * np.nan
@@ -420,19 +420,19 @@ def sizer_mean_properties(
             sizer_limits=[0, 100]
         )
 
-        total_concentration_PM25[i], unit_mass_ugPm3_PM25[i], _, _, _, _, _ = distribution_mean_properties(
-            sizer_dndlogdp_aps[:, i],
-            sizer_diameter_aps,
-            total_concentration=None,
-            sizer_limits=[800, 2500]
-        )
+        # total_concentration_PM25[i], unit_mass_ugPm3_PM25[i], _, _, _, _, _ = distribution_mean_properties(
+        #     sizer_dndlogdp_aps[:, i],
+        #     sizer_diameter_aps,
+        #     total_concentration=None,
+        #     sizer_limits=[800, 2500]
+        # )
 
-        total_concentration_PM10[i], unit_mass_ugPm3_PM10[i], _, _, _, _, _ = distribution_mean_properties(
-            sizer_dndlogdp_aps[:, i],
-            sizer_diameter_aps,
-            total_concentration=None,
-            sizer_limits=[800, 10000]
-        )
+        # total_concentration_PM10[i], unit_mass_ugPm3_PM10[i], _, _, _, _, _ = distribution_mean_properties(
+        #     sizer_dndlogdp_aps[:, i],
+        #     sizer_diameter_aps,
+        #     total_concentration=None,
+        #     sizer_limits=[800, 10000]
+        # )
 
     total_concentration_PM25 = total_concentration_PM25 + total_concentration_PM800
     unit_mass_ugPm3_PM25 = unit_mass_ugPm3_PM25 + unit_mass_ugPm3_PM800

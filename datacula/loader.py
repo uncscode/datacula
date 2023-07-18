@@ -443,7 +443,7 @@ def sizer_data_formatter(
             )
         for i in range(len(epoch_time)):
             data_smps_2d[i,:] = convert.convert_sizer_dn(
-                diameter=dp_header,
+                diameter=np.array(dp_header).astype(float),
                 dn_dlogdp=data_smps_2d[i,:],
                 inverse=inverse
             )
