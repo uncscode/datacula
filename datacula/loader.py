@@ -259,7 +259,7 @@ def sample_data(
             else:
                 value = ''
 
-            if value == '':  # no data
+            if value == '' or value == '.':  # no data
                 data_array[i, j] = np.nan
             elif value.count('�') > 0:
                 data_array[i, j] = np.nan
@@ -272,7 +272,13 @@ def sample_data(
             elif value[0] == '+':
                 data_array[i, j] = float(value)
             elif value[0] == '.':
-                data_array[i, j] = float(value)
+                try:
+                    data_array[i, j] = float(value)
+                except ValueError:
+                    print(line_array)
+                    raise ValueError(
+                        f'Data is not a float: row {i}, col {j}, value {value}')
+                    
             elif value.isalpha():
                 true_match = [
                         'ON', 'on', 'On', 'oN', '1', 'True', 'true',
@@ -288,7 +294,7 @@ def sample_data(
                         'NaN', 'nan', 'Nan', 'nAN', 'NAN', 'NaN',
                         'nAn', 'naN', 'NA', 'Na', 'nA', 'na',
                         'N', 'n', '', 'aN', 'null', 'NULL', 'Null',
-                        '-99999', '-9999'
+                        '-99999', '-9999', '.'
                     ]
 
                 if value in true_match:
