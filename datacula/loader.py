@@ -1,13 +1,6 @@
 """File readers and loaders for datacula."""
-# linting disabled until reformatting of this file
 # pylint: disable=all
-# flake8: noqa
-# pytype: skip-file
 
-# pylint: disable=too-many-arguments
-# pylint: disable=too-many-locals
-# pylint: disable=too-many-branches
-# noaq: C901
 from typing import List, Union, Tuple, Dict, Any
 
 import warnings
@@ -202,6 +195,13 @@ def parse_time_column(
     if time_format == 'epoch':
         # if the time is in epoch format
         return float(line[time_column]) + seconds_shift
+    if date_offset:
+        # if the time is in one column, and the date is fixed
+        time_str = f"{date_offset} {line[time_column]}"
+        return datetime.strptime(
+                                    time_str,
+                                    time_format
+                                ).timestamp() + seconds_shift
     if isinstance(time_column, int):
         # if the time and date are in one column
         return datetime.strptime(
@@ -215,42 +215,68 @@ def parse_time_column(
                                     time_str,
                                     time_format
                                 ).timestamp() + seconds_shift
-    if date_offset:
-        # if the time is in one column, and the date is fixed
-        time_str = f"{date_offset} {line[time_column]}"
-        return datetime.strptime(
-                                    time_str,
-                                    time_format
-                                ).timestamp() + seconds_shift
     raise ValueError(
         f"Invalid time column or format: {time_column}, {time_format}")
 
 
 def sample_data(
-            data: list,
+            data: List[str],
             time_column: int,
             time_format: str,
-            data_columns: list,
+            data_columns: List[int],
             delimiter: str,
             date_offset: str = None,
             seconds_shift: int = 0,
-        ) -> Tuple[np.array, np.array]:
+        ) -> Tuple[np.ndarray, np.ndarray]:
     """
     Samples the data to get the time and data streams.
-    TODO: revise this function
+
+    Parameters:
+    -----------
+    data : List[str]
+        The input data in the form of a list of strings.
+    time_column : int
+        The index of the column that contains the time values.
+    time_format : str
+        The format string that specifies the time format.
+    data_columns : List[int]
+        The indices of the columns that contain the data values.
+    delimiter : str
+        The delimiter character used to separate columns in the input data.
+    date_offset : str, optional
+        A string that represents an offset in the date, in the format
+        'days:hours:minutes:seconds'. Defaults to None.
+    seconds_shift : int, optional
+        An integer that represents a time shift in seconds. Defaults to 0.
+
+    Returns:
+    --------
+    Tuple[np.ndarray, np.ndarray]
+        A tuple of two numpy arrays - epoch_time and data_array:
+        - epoch_time : np.ndarray
+            A 1-D numpy array of epoch times.
+        - data_array : np.ndarray
+            A 2-D numpy array of data values.
+
+    Raises:
+    -------
+    ValueError:
+        - If the data value is not in the correct format.
+        - If no match for data value is found.
     """
-    epoc_time = np.zeros(len(data))
+    epoch_time = np.zeros(len(data))
     data_array = np.zeros((len(data), len(data_columns)))
 
     for i, line in enumerate(data):
-        line_array = line.split(delimiter)  # split the line into an array
+        # split the line into an array
+        line_array = np.array(line.split(delimiter))
 
-        epoc_time[i] = parse_time_column(
-                time_column=time_column,
-                time_format=time_format,
-                line=line_array,
-                date_offset=date_offset,
-                seconds_shift=seconds_shift
+        epoch_time[i] = parse_time_column(
+            time_column=time_column,
+            time_format=time_format,
+            line=line_array,
+            date_offset=date_offset,
+            seconds_shift=seconds_shift
         )
 
         for j, col in enumerate(data_columns):
@@ -297,18 +323,7 @@ def sample_data(
                         '-99999', '-9999', '.'
                     ]
 
-                if value in true_match:
-                    data_array[i, j] = 1
-                elif value in false_match:
-                    data_array[i, j] = 0
-                elif value in nan_match:
-                    data_array[i, j] = np.nan
-                else:
-                    raise ValueError(
-                        'No DATA match, true or false or nan: ' + value)
-            else:
-                raise ValueError('DATA NOT READING IN CORRECTLY:', value)
-    return epoc_time, data_array
+    return epoch_time, data_array
 
 
 def general_data_formatter(
@@ -580,7 +595,7 @@ def save_datalake(path: str, data_lake: object = None, sufix_name: str = None):
         pickle.dump(data_lake, file)
 
 
-def load_datalake(path: str) -> object:
+def load_datalake(path: str, sufix_name: str = None) -> object:
     """
     Load datalake object from a pickle file.
 
@@ -594,8 +609,14 @@ def load_datalake(path: str) -> object:
     data_lake : DataLake
         Loaded DataLake object.
     """
+    # add suffix to file name if present
+    if sufix_name is not None:
+        file_name = f'datalake_{sufix_name}.pk'
+    else:
+        file_name = 'datalake.pk'
+
     # path to load pickle file
-    file_path = os.path.join(path, 'output', 'datalake.pk')
+    file_path = os.path.join(path, 'output', file_name)
 
     # load datalake
     with open(file_path, 'rb') as file:

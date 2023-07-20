@@ -10,9 +10,7 @@ import numpy as np
 from scipy.interpolate import interp1d
 
 from datacula.mie import kappa_fitting_caps_data
-from datacula.convert import convert_sizer_dn
-from scipy.stats.mstats import gmean
-
+import datacula.size_distribution as size_distribution
 
 def caps_processing(
         datalake: object,
@@ -21,7 +19,8 @@ def caps_processing(
         truncation_interp: bool = True,
         refractive_index: float = 1.45,
         calibration_wet=1,
-        calibration_dry=1
+        calibration_dry=1,
+        kappa_fixed: float = None,
         ):
     """loader.
     Function to process the CAPS data, and smps for kappa fitting, and then add
@@ -52,24 +51,28 @@ def caps_processing(
         DataLake object with the processed data added.
     """
     # calc kappa and add to datalake
-    
-    kappa_fit, _, _ = kappa_fitting_caps_data(
-        datalake=datalake,
-        truncation_bsca=False,
-        refractive_index=refractive_index
-    )
-    datalake.datastreams['CAPS_dual'].add_processed_data(
+    if kappa_fixed is None:
+        kappa_fit, _, _ = kappa_fitting_caps_data(
+            datalake=datalake,
+            truncation_bsca=False,
+            refractive_index=refractive_index
+        )
+    else:
+        kappa_len = len(datalake.datastreams['CAPS_data'].return_time(datetime64=False))
+        kappa_fit = np.ones((kappa_len, 3)) * kappa_fixed
+
+    datalake.datastreams['CAPS_data'].add_processed_data(
             data_new=kappa_fit.T,
-            time_new=datalake.datastreams['CAPS_dual'].return_time(datetime64=False),
+            time_new=datalake.datastreams['CAPS_data'].return_time(datetime64=False),
             header_new=['kappa_fit', 'kappa_fit_lower', 'kappa_fit_upper'],
         )
-    orignal_average = datalake.datastreams['CAPS_dual'].average_base_sec
+    orignal_average = datalake.datastreams['CAPS_data'].average_base_sec
 
     # calc truncation corrections and add to datalake
     if truncation_bsca:
-        datalake.reaverage_datalake(
+        datalake.reaverage_datastreams(
             truncation_interval_sec,
-            stream_keys=['CAPS_dual', 'smps_1D', 'smps_2D'],
+            stream_keys=['CAPS_data', 'smps_1D', 'smps_2D'],
         )
         # epoch_start=epoch_start,
         # epoch_end=epoch_end
@@ -82,34 +85,34 @@ def caps_processing(
 
         if truncation_interp:
             interp_dry = interp1d(
-                datalake.datastreams['CAPS_dual'].return_time(datetime64=False),
+                datalake.datastreams['CAPS_data'].return_time(datetime64=False),
                 bsca_truncation_dry,
                 kind='linear',
                 fill_value='extrapolate'
             )
             interp_wet = interp1d(
-                datalake.datastreams['CAPS_dual'].return_time(datetime64=False),
+                datalake.datastreams['CAPS_data'].return_time(datetime64=False),
                 bsca_truncation_wet,
                 kind='linear',
                 fill_value='extrapolate'
             )
 
-            time = datalake.datastreams['CAPS_dual'].return_time(
+            time = datalake.datastreams['CAPS_data'].return_time(
                 datetime64=False,
                 raw=True
             )
             bsca_truncation_dry = interp_dry(time)
             bsca_truncation_wet = interp_wet(time)
         else:
-            time = datalake.datastreams['CAPS_dual'].return_time(
+            time = datalake.datastreams['CAPS_data'].return_time(
                 datetime64=False)
 
-        datalake.datastreams['CAPS_dual'].add_processed_data(
+        datalake.datastreams['CAPS_data'].add_processed_data(
             data_new=bsca_truncation_dry.T,
             time_new=time,
             header_new=['bsca_truncation_dry'],
         )
-        datalake.datastreams['CAPS_dual'].add_processed_data(
+        datalake.datastreams['CAPS_data'].add_processed_data(
             data_new=bsca_truncation_wet.T,
             time_new=time,
             header_new=['bsca_truncation_wet'],
@@ -117,38 +120,38 @@ def caps_processing(
     else:
         bsca_truncation_wet = np.array([1])
         bsca_truncation_dry = np.array([1])
-        time = datalake.datastreams['CAPS_dual'].return_time(
+        time = datalake.datastreams['CAPS_data'].return_time(
                 datetime64=False,
                 raw=True
             )
 
     # index for Bsca wet and dry
-    index_dic = datalake.datastreams['CAPS_dual'].return_header_dict()
+    index_dic = datalake.datastreams['CAPS_data'].return_header_dict()
     
     # check if raw in dict
     if 'raw_Bsca_dry_CAPS_450nm[1/Mm]' in index_dic:
         pass
     else:
         # save raw data
-        datalake.datastreams['CAPS_dual'].add_processed_data(
-            data_new=datalake.datastreams['CAPS_dual'].data_stream[index_dic['Bsca_wet_CAPS_450nm[1/Mm]'], :],
+        datalake.datastreams['CAPS_data'].add_processed_data(
+            data_new=datalake.datastreams['CAPS_data'].data_stream[index_dic['Bsca_wet_CAPS_450nm[1/Mm]'], :],
             time_new=time,
             header_new=['raw_Bsca_wet_CAPS_450nm[1/Mm]'],
         )
-        datalake.datastreams['CAPS_dual'].add_processed_data(
-            data_new=datalake.datastreams['CAPS_dual'].data_stream[index_dic['Bsca_dry_CAPS_450nm[1/Mm]'], :],
+        datalake.datastreams['CAPS_data'].add_processed_data(
+            data_new=datalake.datastreams['CAPS_data'].data_stream[index_dic['Bsca_dry_CAPS_450nm[1/Mm]'], :],
             time_new=time,
             header_new=['raw_Bsca_dry_CAPS_450nm[1/Mm]'],
         )
-        index_dic = datalake.datastreams['CAPS_dual'].return_header_dict()
+        index_dic = datalake.datastreams['CAPS_data'].return_header_dict()
 
 
-    datalake.datastreams['CAPS_dual'].data_stream[index_dic['Bsca_wet_CAPS_450nm[1/Mm]'], :] = datalake.datastreams['CAPS_dual'].data_stream[index_dic['raw_Bsca_wet_CAPS_450nm[1/Mm]'], :] * bsca_truncation_wet.T * calibration_wet
+    datalake.datastreams['CAPS_data'].data_stream[index_dic['Bsca_wet_CAPS_450nm[1/Mm]'], :] = datalake.datastreams['CAPS_data'].data_stream[index_dic['raw_Bsca_wet_CAPS_450nm[1/Mm]'], :] * bsca_truncation_wet.T * calibration_wet
     
-    datalake.datastreams['CAPS_dual'].data_stream[index_dic['Bsca_dry_CAPS_450nm[1/Mm]'], :] = datalake.datastreams['CAPS_dual'].data_stream[index_dic['raw_Bsca_dry_CAPS_450nm[1/Mm]'], :] * bsca_truncation_dry.T * calibration_dry
+    datalake.datastreams['CAPS_data'].data_stream[index_dic['Bsca_dry_CAPS_450nm[1/Mm]'], :] = datalake.datastreams['CAPS_data'].data_stream[index_dic['raw_Bsca_dry_CAPS_450nm[1/Mm]'], :] * bsca_truncation_dry.T * calibration_dry
 
 
-    datalake.datastreams['CAPS_dual'].re_average_data(
+    datalake.datastreams['CAPS_data'].reaverage(
         reaverage_base_sec=orignal_average
     )  # updates the averages to the original value
 
@@ -173,30 +176,30 @@ def albedo_processing(
         DataLake object with the processed data added.
     """
 
-    ssa_wet = datalake.datastreams['CAPS_dual'].return_data(keys=['Bsca_wet_CAPS_450nm[1/Mm]'])[0]/datalake.datastreams['CAPS_dual'].return_data(keys=['Bext_wet_CAPS_450nm[1/Mm]'])[0]
-    ssa_dry = datalake.datastreams['CAPS_dual'].return_data(keys=['Bsca_dry_CAPS_450nm[1/Mm]'])[0]/datalake.datastreams['CAPS_dual'].return_data(keys=['Bext_dry_CAPS_450nm[1/Mm]'])[0]
+    ssa_wet = datalake.datastreams['CAPS_data'].return_data(keys=['Bsca_wet_CAPS_450nm[1/Mm]'])[0]/datalake.datastreams['CAPS_data'].return_data(keys=['Bext_wet_CAPS_450nm[1/Mm]'])[0]
+    ssa_dry = datalake.datastreams['CAPS_data'].return_data(keys=['Bsca_dry_CAPS_450nm[1/Mm]'])[0]/datalake.datastreams['CAPS_data'].return_data(keys=['Bext_dry_CAPS_450nm[1/Mm]'])[0]
 
-    babs_wet = datalake.datastreams['CAPS_dual'].return_data(keys=['Bext_wet_CAPS_450nm[1/Mm]'])[0] - datalake.datastreams['CAPS_dual'].return_data(keys=['Bsca_wet_CAPS_450nm[1/Mm]'])[0]
-    babs_dry = datalake.datastreams['CAPS_dual'].return_data(keys=['Bext_dry_CAPS_450nm[1/Mm]'])[0] - datalake.datastreams['CAPS_dual'].return_data(keys=['Bsca_dry_CAPS_450nm[1/Mm]'])[0]
+    babs_wet = datalake.datastreams['CAPS_data'].return_data(keys=['Bext_wet_CAPS_450nm[1/Mm]'])[0] - datalake.datastreams['CAPS_data'].return_data(keys=['Bsca_wet_CAPS_450nm[1/Mm]'])[0]
+    babs_dry = datalake.datastreams['CAPS_data'].return_data(keys=['Bext_dry_CAPS_450nm[1/Mm]'])[0] - datalake.datastreams['CAPS_data'].return_data(keys=['Bsca_dry_CAPS_450nm[1/Mm]'])[0]
 
-    time = datalake.datastreams['CAPS_dual'].return_time(datetime64=False)
+    time = datalake.datastreams['CAPS_data'].return_time(datetime64=False)
 
-    datalake.datastreams['CAPS_dual'].add_processed_data(
+    datalake.datastreams['CAPS_data'].add_processed_data(
         data_new=ssa_wet,
         time_new=time,
         header_new=['SSA_wet_CAPS_450nm[1/Mm]'],
     )
-    datalake.datastreams['CAPS_dual'].add_processed_data(
+    datalake.datastreams['CAPS_data'].add_processed_data(
         data_new=ssa_dry,
         time_new=time,
         header_new=['SSA_dry_CAPS_450nm[1/Mm]'],
     )
-    datalake.datastreams['CAPS_dual'].add_processed_data(
+    datalake.datastreams['CAPS_data'].add_processed_data(
         data_new=babs_wet,
         time_new=time,
         header_new=['Babs_wet_CAPS_450nm[1/Mm]'],
     )
-    datalake.datastreams['CAPS_dual'].add_processed_data(
+    datalake.datastreams['CAPS_data'].add_processed_data(
         data_new=babs_dry,
         time_new=time,
         header_new=['Babs_dry_CAPS_450nm[1/Mm]'],
@@ -283,84 +286,6 @@ def ccnc_hygroscopicity(
             average_base=[90]
             )
     return datalake
-
-
-def distribution_mean_properties(
-        sizer_dndlogdp,
-        sizer_diameter,
-        total_concentration=None,
-        sizer_limits=None
-        ):
-    """
-    Calculates the mean properties of the size distribution.
-
-
-    Parameters
-    ----------
-    sizer_dndlogdp : array
-        Concentration of particles in each bin.
-    sizer_diameter : array
-        Bin centers
-    total_concentration : float
-        Total concentration of particles in the distribution.
-    sizer_limits : array, optional
-        The lower and upper limits of the size of interest.
-
-    Returns
-    -------
-    total_concentration : float
-        Total concentration of particles in the distribution.
-    unit_mass_ugPm3 : float
-        Total mass of particles in the distribution.
-    mean_diameter_nm : float
-        Mean diameter of the distribution.
-    mean_vol_diameter_nm : float
-        Mean volume diameter of the distribution.
-
-    """
-    from math import pi
-
-    # convert to dn from dn/dlogDp
-    sizer_dn = convert_sizer_dn(sizer_diameter, sizer_dndlogdp)
-    if total_concentration is not None:
-        sizer_dn = sizer_dn * total_concentration / np.sum(sizer_dn)
-    else:
-        total_concentration = np.sum(sizer_dn)
-
-    if sizer_limits is None:
-        volume = 4*pi/3 *(sizer_diameter/2)**3
-    else:
-        threshold_limits = (sizer_diameter >= sizer_limits[0]) & (sizer_diameter <= sizer_limits[1]) # gets indecies to keep
-        sizer_dn = sizer_dn[threshold_limits]
-        sizer_diameter = sizer_diameter[threshold_limits]
-
-        volume = 4*pi/3 * (sizer_diameter/2)**3
-        total_concentration = np.sum(sizer_dn)
-
-    mass_ugPm3 = volume * sizer_dn *1e-9 # density of 1
-    unit_mass_ugPm3 = np.sum(mass_ugPm3)
-
-    #mean diameter by number
-    normalized = sizer_dn / total_concentration
-    diameter_weighted = normalized * sizer_diameter
-    mean_diameter_nm = np.sum(diameter_weighted)
-
-    #mean diameter by volume, unit density is assumed so mass=volume
-    normalized_vol = mass_ugPm3 / unit_mass_ugPm3
-    diameter_weighted_vol = normalized_vol * sizer_diameter
-    mean_vol_diameter_nm = np.sum(diameter_weighted_vol)
-
-    geometric_mean_diameter_nm = gmean(sizer_diameter, weights=normalized)
-
-    # mode from cumulative sum
-    sizer_dn_cumsum = np.cumsum(sizer_dn)/total_concentration
-
-    mode_diameter = np.interp(0.5, sizer_dn_cumsum, sizer_diameter, left=np.nan, right=np.nan)
-
-    sizer_dmass_cumsum = np.cumsum(mass_ugPm3)/unit_mass_ugPm3
-    mode_diameter_mass = np.interp(0.5, sizer_dmass_cumsum, sizer_diameter, left=np.nan, right=np.nan)
-
-    return total_concentration, unit_mass_ugPm3, mean_diameter_nm, mean_vol_diameter_nm, geometric_mean_diameter_nm, mode_diameter, mode_diameter_mass
 
 
 def sizer_mean_properties(

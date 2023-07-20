@@ -480,6 +480,7 @@ def trunc_mono(
             Backward scattering angle in radians truncated by opening on near
             side of cavity.
     """
+    # diameter=list(diameter)
 
     # constants for the geometry of the CAPS
     diam_sphere = 10.0  # diameter of integrating tube in CAPS in cm
@@ -509,12 +510,12 @@ def trunc_mono(
                 base=1,
                 mode='round'
             )
-        dp_discretized = convert.round_arbitrary(
+        dp_discretized = float(convert.round_arbitrary(
                 diameter,
                 base=5,
                 mode='round',
                 nonzero_edge=True
-            )
+            ))
 
         theta, _, _, su = discretize_ScatteringFunction(
             m_discretized,
@@ -525,14 +526,14 @@ def trunc_mono(
             angularResolution=angRes
             )
 
-        theta, _, _, su = ps.ScatteringFunction(
-            m,
-            wavelength,
-            diameter,
-            minAngle=0,
-            maxAngle=180,
-            angularResolution=angRes
-            )
+        # theta, _, _, su = ps.ScatteringFunction(
+        #     m,
+        #     wavelength,
+        #     diameter,
+        #     minAngle=0,
+        #     maxAngle=180,
+        #     angularResolution=angRes
+        #     )
     else:
         theta, _, _, su = ps.ScatteringFunction(
             m,
@@ -676,12 +677,12 @@ def truncation_for_diameters(
                     base=1,
                     mode='round'
                 )
-            diameter = convert.round_arbitrary(
+            diameter = float(convert.round_arbitrary(
                     diameter,
                     base=20,
                     mode='round',
                     nonzero_edge=True
-                )
+                ))
         else:
             pass
 
@@ -836,7 +837,7 @@ def bsca_correction_for_humidified_measurements(
     # calculate the Bsca correction
     bsca_correction = bsca_correction_for_distribution_measurements(
             n_effective,
-            diameter_array=volume_to_length(
+            diameter_array=convert.volume_to_length(
                     volume_dry+volume_water_sample,
                     length_type='diameter'
                 ),
@@ -876,9 +877,10 @@ def kappa_fitting_caps_data(
     bsca_truncation_wet = np.zeros(len(kappa_fit), dtype=float)
 
     for i in tqdm(range(len(kappa_fit))):
-        caps_dry = datalake.datastreams['CAPS_dual'].return_data(keys=['Bext_dry_CAPS_450nm[1/Mm]','dualCAPS_inlet_RH[%]'])[:, i]
-        caps_wet = datalake.datastreams['CAPS_dual'].return_data(keys=['Bext_wet_CAPS_450nm[1/Mm]','Wet_RH_preCAPS[%]', 'Wet_RH_postCAPS[%]'])[:, i]
-        sizer_diameter = datalake.datastreams['smps_2D'].return_header_list().astype(float)
+        caps_dry = datalake.datastreams['CAPS_data'].return_data(keys=['Bext_dry_CAPS_450nm[1/Mm]','dualCAPS_inlet_RH[%]'])[:, i]
+        caps_wet = datalake.datastreams['CAPS_data'].return_data(keys=['Bext_wet_CAPS_450nm[1/Mm]','Wet_RH_preCAPS[%]', 'Wet_RH_postCAPS[%]'])[:, i]
+        sizer_diameter = np.array(datalake.datastreams['smps_2D'].return_header_list()).astype(float)
+        #datalake.datastreams['smps_2D'].return_header_list().astype(float)
         sizer_dndlogdp = np.nan_to_num(datalake.datastreams['smps_2D'].return_data()[:, i])
         sizer_humidity = datalake.datastreams['smps_1D'].return_data(keys=['Relative_Humidity_(%)'])[0, i]
         sizer_total_n = datalake.datastreams['smps_1D'].return_data(keys=['Total_Conc_(#/cc)'])[0, i]

@@ -215,7 +215,10 @@ def kappa_from_volume(
         The kappa parameter as a float.
     """
     # Avoid division by zero
-    water_activity = min(water_activity, 1 - 1e-16)
+    water_activity = np.where(
+        water_activity > 1 - 1e-16,
+        1 - 1e-16,
+        water_activity)
 
     return (1 / water_activity - 1) * volume_water / volume_solute
 
