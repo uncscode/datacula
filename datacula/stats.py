@@ -33,7 +33,7 @@ def drop_zeros(datastream_object: object, zero_keys: list) -> object:
         ) == 0
     datastream_object.data_stream = datastream_object.data_stream[:, zeros]
     datastream_object.time_stream = datastream_object.time_stream[zeros]
-    datastream_object.re_average_data()
+    datastream_object.reaverage()
     return datastream_object
 
 

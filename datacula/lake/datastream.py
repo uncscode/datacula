@@ -1,5 +1,6 @@
 """creates the DataStream class"""
 
+import warnings
 from typing import Union, Optional, List
 import numpy as np
 from datacula import convert, stats
@@ -211,6 +212,20 @@ class DataStream():
         header_new : list
             List of headers for the new data.
         """
+        # # Check for duplicate timestamps in new data
+        # unique_timestamps, unique_indexes = np.unique(
+        #     time_new, return_index=True
+        #     )
+        # if len(unique_timestamps) != len(time_new):
+        #     if data_new.shape[0] != len(time_new):
+        #         data_new = data_new[:, unique_indexes]
+        #     else:
+        #         data_new = data_new[unique_indexes]
+        #     time_new = unique_timestamps
+        #     warnings.warn(
+        #         "Removing duplicate timestamps found in input data."
+        #         )
+
         self.header_list = np.append(self.header_list, header_new)
         # add other rows to the data array
         self.data_stream = np.concatenate(
@@ -232,15 +247,29 @@ class DataStream():
             # add the data
             self.data_stream[-len(header_new):, :] = data_new
         else:
-            self.data_stream[-1, :] = np.interp(
-                self.time_stream,
-                time_new,
-                data_new,
-            ) if len(data_new.shape) == 1 else np.apply_along_axis(
-                lambda x: np.interp(self.time_stream, time_new, x),
-                axis=1,
-                arr=data_new,
-            )
+            # self.data_stream[-1, :] = np.interp(
+            #     self.time_stream,
+            #     time_new,
+            #     data_new,
+            # ) if len(data_new.shape) == 1 else np.apply_along_axis(
+            #     lambda x: np.interp(self.time_stream, time_new, x),
+            #     axis=1,
+            #     arr=data_new,
+            # )
+            if len(data_new.shape) == 1:
+                self.data_stream[-1, :] = np.interp(
+                    self.time_stream,
+                    time_new,
+                    data_new,
+                )
+            else:
+                # interpolate the data
+                for i in range(len(header_new)):
+                    self.data_stream[-len(header_new)+i, :] = np.interp(
+                        self.time_stream,
+                        time_new,
+                        data_new[i, :],
+                    )
 
         self.header_dict = convert.list_to_dict(self.header_list)
         self.reaverage()

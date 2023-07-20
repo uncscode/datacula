@@ -310,6 +310,7 @@ class DataLake():
         if stream_keys is None:
             stream_keys = self.list_datastream()
         for key in stream_keys:
+            print('Reaveraging datastream: ', key)
             self.datastreams[key].reaverage(
                 reaverage_base_sec=average_base_sec,
                 epoch_start=epoch_start,
