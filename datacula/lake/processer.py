@@ -351,7 +351,7 @@ def sizer_mean_properties(
         total_concentration[i], unit_mass_ugPm3[i], mean_diameter_nm[i], \
             mean_vol_diameter_nm[i], geometric_mean_diameter_nm[i], \
                 mode_diameter[i], mode_diameter_mass[i] = \
-                     distribution_mean_properties(
+                     size_distribution.mean_properties(
             sizer_dndlogdp_smps[:, i],
             sizer_diameter_smps,
             sizer_limits=sizer_limits
@@ -359,7 +359,7 @@ def sizer_mean_properties(
 
         # total PM 100 nm concentration
         total_concentration_PM01[i], unit_mass_ugPm3_PM01[i], _, _, _, _, _ = \
-            distribution_mean_properties(
+            size_distribution.mean_properties(
             sizer_dndlogdp_smps[:, i],
             sizer_diameter_smps,
             sizer_limits=[0, 100]
@@ -367,7 +367,7 @@ def sizer_mean_properties(
 
         # total PM <2.5 um concentration
         total_concentration_PM25[i], unit_mass_ugPm3_PM25[i], _, _, _, _, _ = \
-                     distribution_mean_properties(
+                     size_distribution.mean_properties(
             sizer_dndlogdp_smps[:, i],
             sizer_diameter_smps,
             sizer_limits=[0, 2500]
@@ -375,7 +375,7 @@ def sizer_mean_properties(
 
         # total PM <10 um concentration
         total_concentration_PM10[i], unit_mass_ugPm3_PM10[i], _, _, _, _, _ = \
-                     distribution_mean_properties(
+                     size_distribution.mean_properties(
             sizer_dndlogdp_smps[:, i],
             sizer_diameter_smps,
             sizer_limits=[0, 10000]
