@@ -313,7 +313,7 @@ class DataStream():
         TODO: should be split into add_average_data, check_average_data, and
         extend_average_data
         """
-        base_rounding_interval_sec = 3600.0
+        base_rounding_interval_sec = self.average_base_sec
         if self.average_base_time.size == 0:  # average base initialisation
             if self.average_epoch_start is None:
                 average_time_start = int(
@@ -442,6 +442,7 @@ class DataStream():
             `self.average_base_data_std` attributes.
         """
         # Clear the current average data
+
         self.average_base_time = np.array([])
         self.average_base_data = np.array([])
         self.average_base_data_std = np.array([])
