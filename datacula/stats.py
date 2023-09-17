@@ -188,7 +188,9 @@ def average_to_interval(
     """
 
     # average the data in the time interval initialization
-    start_index = 0
+    # find closet index in time_stream to the start time
+    start_index = np.argmin(np.abs(average_base_time[0] - time_stream))
+    # start_index = 0
     stop_index = 0
     interval_look_buffer_multiple = 2
     start_time = time_stream[0]
