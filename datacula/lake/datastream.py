@@ -201,7 +201,7 @@ class DataStream():
             ) -> None:
         """
         Adds processed data to the data stream. Assumes the input matches the
-        raw time stream. If not it will fill the data with NaN.
+        raw time stream.
 
         Parameters:
         -----------

@@ -64,11 +64,21 @@ def add_processed_data(
         )
     else: # interpolate the data_new before adding it to the data_stream
         # interpolate the data_new to the data_stream time array
-        data_interp = np.apply_along_axis(
-            lambda x: np.interp(time, time_new, x),
-                 axis=0,
-                 arr=data_new,
-             )
+        data_interp = np.zeros((len(time), data_new.shape[1]))
+        for i in range(data_new.shape[1]):
+            mask = ~np.isnan(data_new[:, i])
+            if not mask.any():
+                data_interp[:, i] = np.nan
+            else:
+                left_value = data_new[mask, i][0]
+                right_value = data_new[mask, i][-1]
+                data_interp[:, i] = np.interp(
+                    time, 
+                    time_new[mask],
+                    data_new[mask, i],
+                    left=left_value,
+                    right=right_value,
+                )
         # update the data array
         data_updated = np.concatenate(
             (
