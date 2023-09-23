@@ -10,7 +10,7 @@ interpolate the data to the data stream's time array.
 # flake8: noqa
 # pytype: skip-file
 
-
+import warnings
 import numpy as np
 from datacula import convert
 
@@ -36,21 +36,30 @@ def add_processed_data(
         List of headers for the new data.
     """
 
-    # check if the data_new is 2d or 1d
+    # Check if data_new is 2D or 1D
     if len(data_new.shape) == 2:
-        if len(time_new) == data_new.shape[0] and len(time_new) == data_new.shape[1]:
-            concatanate_axis_new = -1
+        # Check if time_new matches the dimensions of data_new
+        if len(time_new) == data_new.shape[0] and \
+            len(time_new) == data_new.shape[1]:
+            concatenate_axis_new = -1  # Default to the last axis
+            # Check if the last axis of data matches the length of time
+            if data.shape[-1] != len(time):
+                if data.shape[0] == len(time):
+                    warnings.warn("Square data with time shape assumes time \
+                                  axis is the last axis in data.")
+                else:
+                    warnings.warn("Inconsistent shapes between data and time.")
         else:
-            concatanate_axis_new = np.argwhere(
-                np.array(data_new.shape) != len(time_new)).flatten()[0]
-        # resphae new data to concatanate axis is the last axis
-        data_new = np.moveaxis(data_new, concatanate_axis_new, -1)
+            # Find the axis that doesn't match the length of time_new
+            concatenate_axis_new = np.argwhere(np.array(data_new.shape) != len(time_new)).flatten()[0]
+        
+        # Reshape new data so the concatenate axis is the last axis
+        data_new = np.moveaxis(data_new, concatenate_axis_new, -1)
     else:
-        # resphae new data to concatanate axis is the last axis
+        # Reshape new data so the concatenate axis is the last axis
         data_new = np.expand_dims(data_new, -1)
 
-
-    # check if the time arrays are the same sze and values are the same
+    # Check if time_new matches the dimensions of data_new
     if np.array_equal(time, time_new):
         # no need to interpolate the data_new before adding
         # it to the data
@@ -63,8 +72,7 @@ def add_processed_data(
             axis=-1,
         )
     else: # interpolate the data_new before adding it to the data_stream
-        # interpolate the data_new to the data_stream time array
-        data_interp = np.zeros((len(time), data_new.shape[1]))
+        data_interp = np.empty((len(time), data_new.shape[1]))
         for i in range(data_new.shape[1]):
             mask = ~np.isnan(data_new[:, i])
             if not mask.any():
