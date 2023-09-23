@@ -44,7 +44,6 @@ def test_add_processed_data_different_time():
     assert np.all(merged_header_list == expected_header_list)
 
 
-
 def test_add_processed_data_same_time():
     # Create some sample data
     data = np.array([[1, 2], [3, 4], [5, 6], [7, 8], [9, 10]])

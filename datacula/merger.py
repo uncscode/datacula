@@ -66,7 +66,7 @@ def add_processed_data(
         # interpolate the data_new to the data_stream time array
         data_interp = np.apply_along_axis(
             lambda x: np.interp(time, time_new, x),
-                 axis=1,
+                 axis=0,
                  arr=data_new,
              )
         # update the data array
