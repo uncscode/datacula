@@ -23,7 +23,7 @@ keywords = [
 dependencies = [
     "matplotlib", "numpy", "scipy", "ipython", "tqdm",
     "PyMieScatt", "particula", "scheduler", "pylint","flake8",
-    "jupyter-book", "ghp-import", "ipykernel", "pandas",
+    "jupyter-book", "ghp-import", "ipykernel", "pandas", "netCDF4",
 ]
 
 # This is set automatically by flit using `datacula.__version__`

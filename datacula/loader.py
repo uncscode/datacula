@@ -548,9 +548,6 @@ def get_files_in_folder_with_size(
         raise ValueError(f"{search_path} is not a directory")
 
     file_list = glob.glob(os.path.join(search_path, filename_regex))
-    # os.chdir(search_path) # this should not be needed
-    # file_list = glob.glob(filename_regex)
-    # os.chdir(original_path)
 
     # filter the files by size
     file_list = [
@@ -711,7 +708,7 @@ def datalake_to_csv(
         print('saved: ', key)
 
 
-def data_ntcdf_loader(
+def netcdf_loader(
         file_path: str,
 ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
     """
