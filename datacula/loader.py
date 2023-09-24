@@ -709,3 +709,36 @@ def datalake_to_csv(
             time_shift_sec=time_shift_sec,
         )
         print('saved: ', key)
+
+
+def data_ntcdf_loader(
+        file_path: str,
+) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """
+    Load data from a netCDF file at the specified file path and return it as
+    a tuple of numpy arrays.
+
+    Parameters:
+    ----------
+    file_path : str
+        The file path of the file to read.
+
+    Returns:
+    -------
+    Tuple[np.ndarray, np.ndarray, np.ndarray]
+        A tuple containing three numpy arrays:
+        - epoch_time : np.ndarray
+            A 1-D numpy array of epoch times.
+        - data_array : np.ndarray
+            A 2-D numpy array of data values.
+        - header : np.ndarray
+            A 1-D numpy array of header values.
+    """
+    # load data from netcdf file
+    nc = Dataset(file_path, 'r')
+    epoch_time = nc.variables['time'][:]
+    data_array = nc.variables['data'][:]
+    header = nc.variables['header'][:]
+    nc.close()
+
+    return epoch_time, data_array, header
