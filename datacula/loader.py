@@ -2,14 +2,15 @@
 # pylint: disable=all
 
 from typing import List, Union, Tuple, Dict, Any
-
 import warnings
 import glob
 import os
 import pickle
+import netCDF4 as nc
 from datetime import datetime
 import numpy as np
 import pandas as pd
+
 from datacula import convert
 
 FILTER_WARNING_FRACTION = 0.5
@@ -303,8 +304,9 @@ def sample_data(
                 except ValueError:
                     print(line_array)
                     raise ValueError(
-                        f'Data is not a float: row {i}, col {j}, value {value}')
-                    
+                        f'Data is not a float: row {i}, col {j}, value {value}'
+                        )
+
             elif value.isalpha():
                 true_match = [
                         'ON', 'on', 'On', 'oN', '1', 'True', 'true',
@@ -322,6 +324,17 @@ def sample_data(
                         'N', 'n', '', 'aN', 'null', 'NULL', 'Null',
                         '-99999', '-9999', '.'
                     ]
+                if value in true_match:
+                    data_array[i, j] = 1
+                elif value in false_match:
+                    data_array[i, j] = 0
+                elif value in nan_match:
+                    data_array[i, j] = np.nan
+                else:
+                    raise ValueError(
+                        f'No match for data value: row {i}, \
+                             col {j}, value {value}'
+                        )
 
     return epoch_time, data_array
 
@@ -459,13 +472,13 @@ def sizer_data_formatter(
             inverse = False
         else:
             raise ValueError(
-                "Invalid value for convert_scale_from in data_sizer_reader. "+\
-                "Either dw/dlogdp or dw must be specified."
+                "Invalid value for convert_scale_from in data_sizer_reader." +
+                " Either dw/dlogdp or dw must be specified."
             )
         for i in range(len(epoch_time)):
-            data_smps_2d[i,:] = convert.convert_sizer_dn(
+            data_smps_2d[i, :] = convert.convert_sizer_dn(
                 diameter=np.array(dp_header).astype(float),
-                dn_dlogdp=data_smps_2d[i,:],
+                dn_dlogdp=data_smps_2d[i, :],
                 inverse=inverse
             )
 
@@ -708,34 +721,174 @@ def datalake_to_csv(
         print('saved: ', key)
 
 
-def netcdf_loader(
+def netcdf_get_epoch_time(
         file_path: str,
-) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+        settings: dict
+) -> np.ndarray:
     """
-    Load data from a netCDF file at the specified file path and return it as
-    a tuple of numpy arrays.
+    Given a netCDF file path and settings, returns an array of epoch times in
+    seconds as a float.
+
+    Currently only uses ARM 1.2 netCDF files (base_time + time_offset)
 
     Parameters:
     ----------
-    file_path : str
-        The file path of the file to read.
+        file_path (str): The path to the netCDF file.
+        settings (dict): A dictionary containing settings for the instrument.
 
     Returns:
     -------
-    Tuple[np.ndarray, np.ndarray, np.ndarray]
-        A tuple containing three numpy arrays:
-        - epoch_time : np.ndarray
-            A 1-D numpy array of epoch times.
-        - data_array : np.ndarray
-            A 2-D numpy array of data values.
-        - header : np.ndarray
-            A 1-D numpy array of header values.
+        np.ndarray: An array of epoch times, in seconds as a float.
     """
-    # load data from netcdf file
-    nc = Dataset(file_path, 'r')
-    epoch_time = nc.variables['time'][:]
-    data_array = nc.variables['data'][:]
-    header = nc.variables['header'][:]
-    nc.close()
+    nc_file = nc.Dataset(file_path)
 
-    return epoch_time, data_array, header
+    epoch_time = np.zeros(nc_file.dimensions['time'].size)
+
+    for time_col in settings['time_column']:
+        epoch_time += nc_file.variables.get(time_col)[:]
+    epoch_time = np.array(epoch_time.astype(float))
+    nc_file.close()
+
+    return epoch_time
+
+
+def netcdf_data_1d_load(
+        file_path: str,
+        settings: dict
+) -> Tuple[np.ndarray, list, np.ndarray]:
+    """
+    Given a netCDF file path and settings, returns a tuple containing the
+    epoch time, header, and data as a numpy array. We do apply the mask to the
+    data, and fill the masked values with nan.
+
+    Parameters:
+    ----------
+        file_path (str): The path to the netCDF file.
+        settings (dict): A dictionary containing settings for the instrument.
+
+    Returns:
+    -------
+        Tuple[np.ndarray, list, np.ndarray]: A tuple containing the epoch time,
+        header, and data as a numpy array.
+
+    Errors:
+    ------
+        KeyError: If the settings dictionary does not contain 'data_1d'.
+    """
+    # check if data_1d is in the settings dic
+    if 'data_1d' not in settings['netcdf_reader']:
+        raise KeyError("data_1d not in settings['netcdf_reader']")
+
+    # get header
+    header_1d = settings['netcdf_reader']['header_1d']
+
+    nc_file = nc.Dataset(file_path)
+    # get epoch time
+    epoch_time = netcdf_get_epoch_time(file_path, settings)
+
+    # empty array to store data
+    data_1d = np.zeros(
+        (len(settings['netcdf_reader']['data_1d']),
+         nc_file.dimensions['time'].size)
+    )
+    # select and fill masked array with nan
+    for i, data_col in enumerate(settings['netcdf_reader']['data_1d']):
+        data = nc_file.variables.get(data_col)[:]
+        data_1d[i, :] = np.ma.filled(data.astype(float), np.nan)
+    nc_file.close()
+
+    # check data shape, transpose if necessary so that time is last dimension
+    data_1d = convert.data_shape_check(
+        time=epoch_time,
+        data=data_1d,
+        header=header_1d)
+
+    return epoch_time, header_1d, data_1d
+
+
+def netcdf_data_2d_load(
+        file_path: str,
+        settings: dict
+) -> Tuple[np.array, list, np.ndarray]:
+    """
+    Given a netCDF file path and settings, returns a tuple containing the
+    epoch time, header, and data as a numpy array. We do apply the mask to the
+    data, and fill the masked values with nan.
+
+    Parameters:
+    ----------
+        file_path (str): The path to the netCDF file.
+        settings (dict): A dictionary containing settings for the instrument.
+
+    Returns:
+    -------
+        Tuple[np.ndarray, list, np.ndarray]: A tuple containing the epoch time,
+        header, and data as a numpy array.
+
+    Errors:
+    ------
+        KeyError: If the settings dictionary does not contain 'data_2d'.
+    """
+    # check if data_1d is in the settings dic
+    if 'data_2d' not in settings['netcdf_reader']:
+        raise KeyError("data_2d not in settings['netcdf_reader']")
+
+    # get epoch time
+    epoch_time = netcdf_get_epoch_time(file_path, settings)
+    # load netcdf file
+    nc_file = nc.Dataset(file_path)
+
+    # select data_2d
+    data_2d = nc_file.variables.get(settings['netcdf_reader']['data_2d'])[:]
+    # convert masked array to numpy array
+    data_2d = np.ma.filled(data_2d.astype(float), np.nan)
+    # get header
+    header_2d = nc_file.variables.get(
+        settings['netcdf_reader']['header_2d']
+        )[:]
+    nc_file.close()
+
+    # convert header to list of strings
+    header_2d = [str(item) for item in header_2d.tolist()]
+
+    # check data shape, transpose if necessary so that time is last dimension
+    data_2d = convert.data_shape_check(
+        time=epoch_time,
+        data=data_2d,
+        header=header_2d)
+
+    return epoch_time, header_2d, data_2d
+
+
+def netcdf_info_print(file_path, file_return=False):
+    """
+    Prints information about a netCDF file. Useful for generating settings
+    dictionaries.
+
+    Parameters:
+    ----------
+        file_path (str): The path to the netCDF file.
+        file_return (bool): If True, returns the netCDF file object.
+            Defaults to False.
+
+    Returns:
+    -------
+        nc_file (netCDF4.Dataset): The netCDF file object.
+    """
+
+    nc_file = nc.Dataset(file_path)
+    print("Dimensions:")
+    for dim in nc_file.dimensions:
+        print(dim, len(nc_file.dimensions[dim]))
+    print("\nVariables:")
+    for var in nc_file.variables:
+        print(var,
+              nc_file.variables[var].shape,
+              nc_file.variables[var].dtype)
+    print("\nHeaders:")
+    for attr in nc_file.ncattrs():
+        print(attr, "=", getattr(nc_file, attr))
+    nc_file.close()
+
+    if file_return:
+        return nc_file

@@ -11,6 +11,7 @@ from scipy.interpolate import interp1d
 
 from datacula.mie import kappa_fitting_caps_data
 import datacula.size_distribution as size_distribution
+import datacula.convert as convert
 
 def caps_processing(
         datalake: object,
@@ -261,7 +262,7 @@ def ccnc_hygroscopicity(
         super_sat_set
 
         if ccnc_number[i] < sizer_total_n[i] and ccnc_number[i] > 50 and super_sat_set[i] > supersaturation_bounds[0] and super_sat_set[i] <= supersaturation_bounds[1]:
-            sizer_dn = convert_sizer_dn(sizer_diameter, sizer_dndlogdp[:, i])
+            sizer_dn = convert.convert_sizer_dn(sizer_diameter, sizer_dndlogdp[:, i])
             sizer_dn = sizer_dn * sizer_total_n[i] / np.sum(sizer_dn)
 
             sizer_dn_cumsum = np.cumsum(np.flip(sizer_dn))
