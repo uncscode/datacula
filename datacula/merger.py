@@ -52,42 +52,10 @@ def add_processed_data(
         the data stream.
     """
 
-    # Check if data_new is 2D or 1D
-    if len(data_new.shape) == 2:
-        # Check if time_new matches the dimensions of data_new
-        if len(time_new) == data_new.shape[0] and \
-            len(time_new) == data_new.shape[1]:
-            concatenate_axis_new = 0  # Default to the first axis
-            # Check if the last axis of data matches the length of time
-            if data.shape[-1] != len(time):
-                if data.shape[0] == len(time):
-                    warnings.warn("Square data with time shape assumes time \
-                                  axis is the first axis in data.")
-                else:
-                    warnings.warn("Inconsistent shapes between data and time.")
-        else:
-            # Find the axis that doesn't match the length of time_new
-            concatenate_axis_new = np.argwhere(
-                np.array(data_new.shape) != len(time_new)).flatten()[0]
-        
-        # Reshape new data so the concatenate axis is the first axis
-        data_new = np.moveaxis(data_new, concatenate_axis_new, 0)
-
-        # check header list length matches data_new shape
-        if len(header_new) != data_new.shape[0]:
-            print(f'header_new len: {len(header_new)} vs. data_new.shape: \
-                  {data_new.shape}')
-            print(header_new)
-            raise ValueError("Header list length must match the first \
-                              dimension of data_new.")
-    else:
-        # check if header is a single entry
-        if len(header_new) != 1:
-            raise ValueError("Header list must be a single entry if data_new \
-                              is 1D.")
-        # Reshape new data so the concatenate axis is the first axis
-        data_new = np.expand_dims(data_new, 0)
-
+    data_new = convert.data_shape_check(
+        time=time_new,
+        data=data_new,
+        header=header_new)
 
     # Check if time_new matches the dimensions of data_new
     if np.array_equal(time, time_new):

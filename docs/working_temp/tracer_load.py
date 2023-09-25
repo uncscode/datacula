@@ -29,7 +29,7 @@ plt.rcParams.update({'text.color': "#333333",
 # %%
 # settings_path = "C:\\Users\\253393\\Documents\\GitHub\\CAFE-processing\\server\\dev\\server_data_settings.json"
 # settings_path = "C:\\Code\\datacula\\private_dev\\lake_settings.json"
-settings_path = "C:\\Users\\kkgor\\OneDrive\\Areas\\GitHub\\datacula\\private_dev\\lake_settings.json"
+settings_path = "D:\\Tracer\\working_folder\\lake_settings.json"
 # settings_path = "C:\\Users\\kkgor\\OneDrive\\Documents\\GitHub\\CAFE-processing\\server\\dev\\server_data_settings.json"
 
 #load json file
@@ -88,7 +88,7 @@ datalake.reaverage_datastreams(300)
 datalake = processer.albedo_processing(datalake=datalake)
 loader.save_datalake(path=path, data_lake=datalake, sufix_name='new_lower')
 # %%
-
+datalake = loader.load_datalake(path=path, sufix_name='new_lower')
 # %%
 
 tracer_timezone = pytz.timezone('US/Central')

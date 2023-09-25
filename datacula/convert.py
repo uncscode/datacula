@@ -1,6 +1,7 @@
 """conversion functions common for aerosol processing
 """
 
+import warnings
 from typing import Union, Tuple, Any, List, Dict
 import numpy as np
 
@@ -526,3 +527,67 @@ def get_values_in_dict(
                 f"{list(dict_to_check.keys())}"
             )
     return values
+
+
+def data_shape_check(
+        time: np.ndarray,
+        data: np.ndarray,
+        header: list,
+) -> np.ndarray:
+    """
+    Check the shape of the input data and header list, and reshape the data if
+    necessary. The data array can be 1D or 2D. If the data array is 2D, the
+    time array must match the last dimensions of the data array. If the data
+    array is 1D, the header list must be a single entry.
+
+    Parameters:
+    ----------
+        time (np.ndarray): 1D array of time values.
+        data (np.ndarray): 1D or 2D array of data values.
+        header (list): List of header values.
+
+    Returns:
+    -------
+        np.ndarray: Reshaped data array.
+
+    Raises:
+    -------
+        ValueError: If the length of the header list does not match the first
+        dimension of the data array.
+    """
+
+    # Check if data_new is 2D or 1D
+    if len(data.shape) == 2:
+        # Check if time matches the dimensions of data
+        if len(time) == data.shape[0] and len(time) == data.shape[1]:
+            concatenate_axis_new = 0  # Default to the first axis
+            # Check if the last axis of data matches the length of time
+            if data.shape[-1] != len(time):
+                if data.shape[0] == len(time):
+                    warnings.warn("Square data with time shape assumes time \
+                                  axis is the first axis in data.")
+                else:
+                    warnings.warn("Inconsistent shapes between data and time.")
+        else:
+            # Find the axis that doesn't match the length of time
+            concatenate_axis_new = np.argwhere(
+                np.array(data.shape) != len(time)).flatten()[0]
+        # Reshape new data so the concatenate axis is the first axis
+        data = np.moveaxis(data, concatenate_axis_new, 0)
+
+        # check header list length matches data_new shape
+        if len(header) != data.shape[0]:
+            print(f'header len: {len(header)} vs. data.shape: \
+                  {data.shape}')
+            print(header)
+            raise ValueError("Header list length must match the first \
+                              dimension of data_new.")
+    else:
+        # check if header is a single entry
+        if len(header) != 1:
+            raise ValueError("Header list must be a single entry if data_new \
+                              is 1D.")
+        # Reshape new data so the concatenate axis is the first axis
+        data = np.expand_dims(data, 0)
+
+    return data
