@@ -51,6 +51,7 @@ def caps_processing(
         DataLake object with the processed data added.
     """
     # calc kappa and add to datalake
+    print('CAPS kappa_HGF fitting')
     if kappa_fixed is None:
         kappa_fit, _, _ = kappa_fitting_caps_data(
             datalake=datalake,
@@ -69,6 +70,7 @@ def caps_processing(
     orignal_average = datalake.datastreams['CAPS_data'].average_base_sec
 
     # calc truncation corrections and add to datalake
+    print('CAPS truncation corrections')
     if truncation_bsca:
         datalake.reaverage_datastreams(
             truncation_interval_sec,
@@ -686,7 +688,7 @@ def pass3_processing(
     index_dic = datalake.datastreams['pass3'].return_header_dict()
 
     # calibration loop babs.
-    print('Calibrated raw Pass 3')
+    print('Calibrated raw Pass-3')
     for i, babs in enumerate(babs_list):
         raw_name = 'raw_' + babs
         datalake.datastreams['pass3'].data_stream[index_dic[babs], :] = datalake.datastreams['pass3'].data_stream[index_dic[raw_name], :] * babs_405_532_781[i]
