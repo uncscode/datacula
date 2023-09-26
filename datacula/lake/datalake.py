@@ -2,7 +2,7 @@
 
 
 from typing import Tuple, List, Optional
-
+import os
 import numpy as np
 from datacula import loader, stats
 from datacula.lake.datastream import DataStream
@@ -30,7 +30,7 @@ class DataLake():
 
     Methods:
     ----------
-        list_datastream: Returns a list of the datastreams in the DataLake.
+        list_datastreams: Returns a list of the datastreams in the DataLake.
         update_datastream: Updates all datastreams in the DataLake.
         add_processed_datastream: Adds a processed datastream to the DataLake.
         initialise_datastream: Initialises a datastream using the settings in
@@ -48,7 +48,7 @@ class DataLake():
         datalake.add_data(TODO: add this)
 
         # Get a list of the datastreams in the DataLake
-        datastream_list = datalake.list_datastream()
+        datastream_list = datalake.list_datastreams()
 
         # Update all datastreams in the DataLake
         datalake.update_datastream()
@@ -80,7 +80,35 @@ class DataLake():
         self.datastreams = {}
         self.utc_to_local = utc_to_local
 
-    def list_datastream(self) -> list:
+    def info(
+            self,
+            header_print_count: int = 10,
+            limit_header_print: bool = True
+    ) -> None:
+        """
+        Prints information about the datastreams in the DataLake.
+
+        Parameters:
+        ----------
+            header_print (int, optional): The number of headers to print
+                for each datastream. Default is 10.
+            limit_header_print (bool, optional): Whether to limit the number
+                of headers printed. Default is True.
+
+        Returns:
+        ----------
+            None.
+        """
+        for datastreams in self.list_datastreams():
+            print('datastreams: ', datastreams)
+            header_count = 0
+            for header in self.datastreams[datastreams].return_header_list():
+                print('     header: ', header)
+                header_count += 1
+                if header_count > header_print and limit_header_print:
+                    break
+
+    def list_datastreams(self) -> list:
         """
         Returns a list of the datastreams in the DataLake.
 
@@ -191,12 +219,18 @@ class DataLake():
         first_pass = True
         # load the data type
         for path in full_paths:
+            print('Loading data from:', os.path.split(path)[-1])
+
             if self.settings[key]['data_loading_function'] == 'general_load':
                 self.initialise_1d_datastream(key, path, first_pass)
                 first_pass = False
             elif (self.settings[key]['data_loading_function'] ==
                     'general_2d_sizer_load'):
                 self.initialise_2d_datastream(key, path, first_pass)
+                first_pass = False
+            elif (self.settings[key]['data_loading_function'] ==
+                    'netcdf_load'):
+                self.initialise_netcdf_datastream(key, path, first_pass)
                 first_pass = False
             else:
                 raise ValueError('Data loading function not recognised',
@@ -378,7 +412,7 @@ class DataLake():
             (i.e., use the original epoch end time).
         """
         if stream_keys is None:
-            stream_keys = self.list_datastream()
+            stream_keys = self.list_datastreams()
         for key in stream_keys:
             print('Reaveraging datastream: ', key)
             self.datastreams[key].reaverage(

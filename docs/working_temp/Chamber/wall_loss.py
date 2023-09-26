@@ -99,7 +99,7 @@ settings = {
 my_lake = DataLake(settings=settings, path=data_path)
 
 my_lake.update_datastream()
-my_lake.list_datastream()
+my_lake.list_datastreams()
 # %% calculate mean properties of smps 2d data 
 my_lake = processer.sizer_mean_properties(my_lake, "smps_2D")
 
