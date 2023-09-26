@@ -90,7 +90,7 @@ class DataLake():
 
         Parameters:
         ----------
-            header_print (int, optional): The number of headers to print
+            header_print_count (int, optional): The number of headers to print
                 for each datastream. Default is 10.
             limit_header_print (bool, optional): Whether to limit the number
                 of headers printed. Default is True.
@@ -105,7 +105,7 @@ class DataLake():
             for header in self.datastreams[datastreams].return_header_list():
                 print('     header: ', header)
                 header_count += 1
-                if header_count > header_print and limit_header_print:
+                if header_count > header_print_count and limit_header_print:
                     break
 
     def list_datastreams(self) -> list:
