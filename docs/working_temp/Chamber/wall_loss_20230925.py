@@ -25,7 +25,7 @@ plt.rcParams.update({'text.color': "#333333",
                      "ps.fonttype": 42})
 
 #%%
-data_path = 'F:\\CloudChamber\\exp20230830'
+data_path = 'F:\\CloudChamber\\exp20230925'
 # make plots folder
 plot_path = os.path.join(data_path, 'plots')
 if not os.path.exists(plot_path):
@@ -115,10 +115,9 @@ CHAMBER_VOLUME = 900 # L
 k_rate_chamber_min = chamber_push/CHAMBER_VOLUME
 k_rate_chamber_hr = k_rate_chamber_min * 60
 
-
 # time range
-epoch_start = datetime.fromisoformat('2023-08-30T11:30').timestamp()
-epoch_end = datetime.fromisoformat('2023-08-30T14:30').timestamp()
+epoch_start = datetime.fromisoformat('2023-09-25T15:40').timestamp()
+epoch_end = datetime.fromisoformat('2023-09-26T07:00').timestamp()
 mdt_timezone = pytz.timezone('America/Denver')
 
 
@@ -134,11 +133,11 @@ plot.timeseries(
     shade=True)
 
 ax.minorticks_on()
-plt.tick_params(rotation=-35)
+plt.tick_params(rotation=-25)
 ax.set_ylabel('Particle Number(#/cm³)')
 # ax.set_xlim((epoch_start, epoch_end))
 
-ax.xaxis.set_major_formatter(dates.DateFormatter('%d %H:%M', tz=mdt_timezone))
+ax.xaxis.set_major_formatter(dates.DateFormatter('%H:%M', tz=mdt_timezone))
 # ax.xaxis.set_minor_formatter(dates.DateFormatter('%d', tz=mdt_timezone))
 # ax.set_ylim((0,2000))
 ax.grid()
@@ -163,7 +162,7 @@ ax.set_yscale('log')
 ax.set_xlabel('Diameter (nm)')
 ax.set_ylabel('Particle Number(#/cm³)') 
 # ax.set_ylim((1e-1,1e4))
-ax.set_xlim((10,400))
+ax.set_xlim((10,700))
 ax.grid()
 ax.legend()
 fig.tight_layout()
@@ -171,6 +170,8 @@ fig.tight_layout()
 # plot 2d smps data
 concentration = conc
 concentration = np.where(concentration < 1e-5, 1e-5, concentration)
+concentration = np.where(concentration > 10**4.5, 10*4.5, concentration)
+# concentration = np.log10(concentration)
 
 fig, ax = plt.subplots(1,1)
 plt.contourf(
@@ -192,12 +193,12 @@ fig.savefig(plot_path + '\\smps_2d.png', dpi=300)
 
 
 # Find the index of the bin closest to 50
-bin50_index = np.argmin(np.abs(size_bins - 50))
-bin125_index = np.argmin(np.abs(size_bins - 125))
+bin50_index = np.argmin(np.abs(size_bins - 100))
+bin125_index = np.argmin(np.abs(size_bins - 400))
 
 fig, ax = plt.subplots()
-ax.plot(rebase_time_hour, conc[bin50_index,:], label='50 nm')
-ax.plot(rebase_time_hour, conc[bin125_index,:], label='125 nm')
+ax.plot(rebase_time_hour, conc[bin50_index,:], label='100 nm')
+ax.plot(rebase_time_hour, conc[bin125_index,:], label='400 nm')
 ax.set_yscale('log')
 ax.set_xlabel('Time (hr)')
 ax.set_ylabel('Particle Number(#/cm³)')
@@ -305,13 +306,12 @@ ax[1].plot(size_bins, np.ones_like(size_bins)*k_rate_chamber_hr,
 # ax.set_yscale('log')
 ax[1].set_xlabel('Diameter (nm)')
 ax[1].set_ylabel('k apparent decay rate (1/hr)')
-ax[1].set_xlim((10, 500))
+ax[1].set_xlim((10, 800))
 ax[1].set_ylim((0,1))
 ax[1].grid()
 ax[1].legend()
 fig.tight_layout()
 fig.savefig(plot_path + '\\decay_rate.png', dpi=300)
-
 
 
 # %%
