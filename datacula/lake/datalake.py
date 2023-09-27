@@ -4,7 +4,8 @@
 from typing import Tuple, List, Optional
 import os
 import numpy as np
-from datacula import loader, stats, convert
+from datacula import loader, stats
+from datacula import convert
 from datacula.lake.datastream import DataStream
 
 
@@ -468,11 +469,11 @@ class DataLake():
         )
 
         # check data shape
-        data_2d = convert.check_data_shape(
+        data_2d = convert.data_shape_check(
             time=epoch_time,
             data=data_2d,
             header=dp_header)
-        data_1d = convert.check_data_shape(
+        data_1d = convert.data_shape_check(
             time=epoch_time,
             data=data_1d,
             header=self.settings[key]['data_header'])

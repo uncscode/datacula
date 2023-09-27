@@ -37,7 +37,7 @@ def data_raw_loader(file_path: str) -> list:
     try:
         with open(file_path, 'r', encoding='utf8', errors='replace') as file:
             data = [line.rstrip() for line in file]
-        print('Loading data from:', os.path.split(file_path)[-1])
+        # print('Loading data from:', os.path.split(file_path)[-1])
     except FileNotFoundError:
         print(f"File not found: {file_path}")
         data = []

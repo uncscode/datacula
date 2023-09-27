@@ -50,7 +50,7 @@ path = "F:\\Tracer\\working_folder\\raw_data"
 
 #%%
 keys_subset = ["SP2_data", "SPAMS_data", "CAPS_data", "SMPS_data", "APS3320_data"]
-keys_subset = ["APS3320_data"]
+keys_subset = ["APS3320_data", "ARM_aps"]
 # ["PASS3_data", "picarro_data","SP2_data", "SPAMS_data", "CAPS_data_data", "SMPS_data", "APS_data", "CCNc"]
 simple_settings = {key: settings[key] for key in keys_subset}
 
@@ -66,7 +66,7 @@ time_format = "%m/%d/%Y %H:%M:%S"
 tracer_timezone = pytz.timezone('US/Central')
 epoch_start = time_str_to_epoch('07/01/2022 00:00:00', time_format, 'US/Central')
 epoch_end = time_str_to_epoch('07/28/2022 00:00:00', time_format, 'US/Central')
-
+datalake.reaverage_datastreams(60, epoch_start=epoch_start, epoch_end=epoch_end)
 # epoch_start = datetime.fromisoformat('2022-06-30T19:00').timestamp()
 # epoch_end = datetime.fromisoformat('2022-08-01T05:00').timestamp()
 
@@ -76,40 +76,27 @@ datalake = processer.sizer_mean_properties(
     new_key='lanl_aps_mean_properties',
     diameter_multiplier_to_nm=1000,
 )
-# datalake = processer.sizer_mean_properties(
-#     datalake=datalake,
-#     stream_key='aos_aps_2D',
-#     new_key='aos_aps_mean_properties',
-#     diameter_multiplier_to_nm=1000,
-# )
+datalake = processer.sizer_mean_properties(
+    datalake=datalake,
+    stream_key='aos_aps_2D',
+    new_key='aos_aps_mean_properties',
+    diameter_multiplier_to_nm=1000,
+)
 datalake.info()
-# datalake.reaverage_datastreams(600)
-
-# %% 
-
-time_format = "%m/%d/%Y %H:%M:%S"
-seconds = 60*60*12
-date = "07/25/2023 00:00:00"
-
-
-time_obj = datetime.strptime(date, time_format).timestamp()+seconds
-time_next = datetime.fromtimestamp(time_obj)
-print(time_next.strftime(time_format))
-
-# %% see size of data
-datalake.datastreams['aps_2D'].return_time(raw=True).shape
+datalake.reaverage_datastreams(600)
 
 
 # %%
+datalake.reaverage_datastreams(600*3, epoch_start=epoch_start, epoch_end=epoch_end)
 
 fig, ax = plt.subplots()
-# plot.timeseries(
-#     ax,
-#     datalake,
-#     'aos_aps_mean_properties',
-#     'Unit_Mass_(ugPm3)_PM10',
-#     'arm',
-#     shade=True)
+plot.timeseries(
+    ax,
+    datalake,
+    'aos_aps_mean_properties',
+    'Unit_Mass_(ugPm3)_PM10',
+    'arm',
+    shade=True)
 plot.timeseries(
     ax,
     datalake,
@@ -120,7 +107,7 @@ plot.timeseries(
 
 ax.minorticks_on()
 plt.tick_params(rotation=-35)
-# ax.set_ylabel('Particle Mass (ug/m3)')
+ax.set_ylabel('PM10 Unit Mass ($\mu g/m^3$)')
 # ax.set_xlim((epoch_start, epoch_end))
 ax.xaxis.set_major_formatter(dates.DateFormatter('%m/%d', tz=tracer_timezone))
 # ax.xaxis.set_minor_formatter(dates.DateFormatter('%d'))
