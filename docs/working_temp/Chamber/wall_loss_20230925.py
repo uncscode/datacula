@@ -50,6 +50,7 @@ settings = {
         "last_timestamp_processed": "",
         "skipRowsDict": 0,
         "Time_shift_sec": 0,
+        "timezone_identifier": "US/Mountain",
         "data_checks": {
             "characters": [200],
             "skip_rows": 24,

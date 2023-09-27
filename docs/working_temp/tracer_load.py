@@ -14,6 +14,7 @@ from datacula import loader
 from datetime import datetime, timedelta
 import pytz
 import os
+from datacula.time_manage import time_str_to_epoch
 
 # preferred settings for plotting
 plt.rcParams.update({'text.color': "#333333",
@@ -30,7 +31,7 @@ plt.rcParams.update({'text.color': "#333333",
 # %%
 # settings_path = "C:\\Users\\253393\\Documents\\GitHub\\CAFE-processing\\server\\dev\\server_data_settings.json"
 # settings_path = "C:\\Code\\datacula\\private_dev\\lake_settings.json"
-settings_path = "D:\\Tracer\\working_folder\\lake_settings.json"
+settings_path = "F:\\Tracer\\working_folder\\lake_settings.json"
 # settings_path = "C:\\Users\\kkgor\\OneDrive\\Documents\\GitHub\\CAFE-processing\\server\\dev\\server_data_settings.json"
 
 #load json file
@@ -42,14 +43,14 @@ with open(settings_path,
 # %%
 # path = "C:\\Users\\253393\\Desktop\\hard_drive_backup\\working_folder\\raw_data\\"
 path = "U:\\Projects\\TRACER_analysis\\working_folder\\raw_data"
-path = "D:\\Tracer\\working_folder\\raw_data"
+path = "F:\\Tracer\\working_folder\\raw_data"
 # path = "U:\\code_repos\\CAFE-processing\\server\\server_files\\"
 # path = "C:\\Users\\kkgor\\OneDrive\\Documents\\GitHub\\CAFE-processing\\server\\server_files\\"
 # settings = get_server_data_settings()
 
 #%%
 keys_subset = ["SP2_data", "SPAMS_data", "CAPS_data", "SMPS_data", "APS3320_data"]
-keys_subset = ["APS3320_data", "ARM_aps"]
+keys_subset = ["APS3320_data"]
 # ["PASS3_data", "picarro_data","SP2_data", "SPAMS_data", "CAPS_data_data", "SMPS_data", "APS_data", "CCNc"]
 simple_settings = {key: settings[key] for key in keys_subset}
 
@@ -61,8 +62,13 @@ datalake.remove_zeros()
 
 
 # %% 
-epoch_start = datetime.fromisoformat('2022-06-30T19:00').timestamp()
-epoch_end = datetime.fromisoformat('2022-08-01T05:00').timestamp()
+time_format = "%m/%d/%Y %H:%M:%S"
+tracer_timezone = pytz.timezone('US/Central')
+epoch_start = time_str_to_epoch('07/01/2022 00:00:00', time_format, 'US/Central')
+epoch_end = time_str_to_epoch('07/28/2022 00:00:00', time_format, 'US/Central')
+
+# epoch_start = datetime.fromisoformat('2022-06-30T19:00').timestamp()
+# epoch_end = datetime.fromisoformat('2022-08-01T05:00').timestamp()
 
 datalake = processer.sizer_mean_properties(
     datalake=datalake,
@@ -70,37 +76,53 @@ datalake = processer.sizer_mean_properties(
     new_key='lanl_aps_mean_properties',
     diameter_multiplier_to_nm=1000,
 )
-datalake = processer.sizer_mean_properties(
-    datalake=datalake,
-    stream_key='aos_aps_2D',
-    new_key='aos_aps_mean_properties',
-    diameter_multiplier_to_nm=1000,
-)
+# datalake = processer.sizer_mean_properties(
+#     datalake=datalake,
+#     stream_key='aos_aps_2D',
+#     new_key='aos_aps_mean_properties',
+#     diameter_multiplier_to_nm=1000,
+# )
 datalake.info()
-datalake.reaverage_datastreams(600, epoch_start=epoch_start, epoch_end=epoch_end)
+# datalake.reaverage_datastreams(600)
+
+# %% 
+
+time_format = "%m/%d/%Y %H:%M:%S"
+seconds = 60*60*12
+date = "07/25/2023 00:00:00"
 
 
+time_obj = datetime.strptime(date, time_format).timestamp()+seconds
+time_next = datetime.fromtimestamp(time_obj)
+print(time_next.strftime(time_format))
 
-
-
+# %% see size of data
+datalake.datastreams['aps_2D'].return_time(raw=True).shape
 
 
 # %%
 
 fig, ax = plt.subplots()
+# plot.timeseries(
+#     ax,
+#     datalake,
+#     'aos_aps_mean_properties',
+#     'Unit_Mass_(ugPm3)_PM10',
+#     'arm',
+#     shade=True)
 plot.timeseries(
     ax,
     datalake,
-    'aos_aps_1D',
-    'surface_area_concentration_nm_cm3',
-    'arm',
+    'lanl_aps_mean_properties',
+    'Unit_Mass_(ugPm3)_PM10',
+    'LANL',
     shade=True)
 
 ax.minorticks_on()
 plt.tick_params(rotation=-35)
 # ax.set_ylabel('Particle Mass (ug/m3)')
 # ax.set_xlim((epoch_start, epoch_end))
-ax.xaxis.set_major_formatter(dates.DateFormatter('%m/%d'))
+ax.xaxis.set_major_formatter(dates.DateFormatter('%m/%d', tz=tracer_timezone))
 # ax.xaxis.set_minor_formatter(dates.DateFormatter('%d'))
 ax.set_ylim(bottom=0)
 ax.grid()

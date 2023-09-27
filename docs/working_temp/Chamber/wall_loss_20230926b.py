@@ -26,7 +26,7 @@ plt.rcParams.update({'text.color': "#333333",
                      "ps.fonttype": 42})
 
 #%%
-data_path = 'F:\\CloudChamber\\exp20230926'
+data_path = 'F:\\CloudChamber\\exp20230926b'
 # make plots folder
 plot_path = os.path.join(data_path, 'plots')
 if not os.path.exists(plot_path):
@@ -119,8 +119,8 @@ k_rate_chamber_hr = k_rate_chamber_min * 60
 
 # time range
 time_format = "%m/%d/%Y %H:%M:%S"
-epoch_start = time_str_to_epoch('09/26/2023 11:35:00', time_format, 'US/Mountain')
-epoch_end = time_str_to_epoch('09/26/2023 13:30:00', time_format, 'US/Mountain')
+epoch_start = time_str_to_epoch('09/26/2023 14:0:00', time_format, 'US/Mountain')
+epoch_end = time_str_to_epoch('09/27/2023 06:00:00', time_format, 'US/Mountain')
 # epoch_start = datetime.fromisoformat('2023-09-26T013:00').timestamp()
 # epoch_end = datetime.fromisoformat('2023-09-26T15:00').timestamp()
 timezone = pytz.timezone('US/Mountain')

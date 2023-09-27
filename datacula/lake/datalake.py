@@ -4,7 +4,7 @@
 from typing import Tuple, List, Optional
 import os
 import numpy as np
-from datacula import loader, stats
+from datacula import loader, stats, convert
 from datacula.lake.datastream import DataStream
 
 
@@ -463,11 +463,19 @@ class DataLake():
             time_format=self.settings[key]['time_format'],
             delimiter=self.settings[key]['data_delimiter'],
             date_offset=date_offset,
+            seconds_shift=self.settings[key]['Time_shift_sec'],
+            timezone_identifier=self.settings[key]['timezone_identifier']
         )
 
-        # Transpose the data
-        data_2d = data_2d.T
-        data_1d = data_1d.T
+        # check data shape
+        data_2d = convert.check_data_shape(
+            time=epoch_time,
+            data=data_2d,
+            header=dp_header)
+        data_1d = convert.check_data_shape(
+            time=epoch_time,
+            data=data_1d,
+            header=self.settings[key]['data_header'])
 
         return epoch_time, dp_header, data_2d, data_1d
 

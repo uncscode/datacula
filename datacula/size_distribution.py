@@ -53,6 +53,10 @@ def mean_properties(
         threshold_limits = (sizer_diameter >= sizer_limits[0]) & \
             (sizer_diameter <= sizer_limits[1])  # gets indexes to keep
 
+        # if no bins are in the range, return nans
+        if np.sum(threshold_limits) == 0:
+            return np.nan, np.nan, np.nan, np.nan, np.nan, np.nan, np.nan
+
         sizer_dn = sizer_dn[threshold_limits]
         sizer_diameter = sizer_diameter[threshold_limits]
 

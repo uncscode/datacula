@@ -416,7 +416,9 @@ def sizer_data_formatter(
             time_column: int,
             time_format: str,
             delimiter: str = ',',
-            date_offset: str = None
+            date_offset: str = None,
+            seconds_shift: int = 0,
+            timezone_identifier: str = 'UTC'
         ) -> Tuple[np.ndarray, List[str], np.ndarray, np.ndarray]:
     """
     Formats data from a particle sizer.
@@ -437,6 +439,10 @@ def sizer_data_formatter(
         The delimiter used in the data.
     date_offset : str, default=None
         The date offset to add to the timestamp.
+    seconds_shift : int, default=0
+        The number of seconds to add to the timestamp.
+    timezone_identifier : str, default='UTC'
+        The timezone identifier for the data.
 
     Returns
     -------
@@ -469,7 +475,9 @@ def sizer_data_formatter(
         time_format,
         dp_columns,
         delimiter,
-        date_offset
+        date_offset,
+        seconds_shift=seconds_shift,
+        timezone_identifier=timezone_identifier
     )
     epoch_time, data_smps_1d = sample_data(
         data,
@@ -477,7 +485,9 @@ def sizer_data_formatter(
         time_format,
         data_column,
         delimiter,
-        date_offset
+        date_offset,
+        seconds_shift=seconds_shift,
+        timezone_identifier=timezone_identifier
     )
 
     if "convert_scale_from" in data_sizer_reader.keys():
