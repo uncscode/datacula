@@ -19,12 +19,10 @@ file_path = "D:\\Tracer\\working_folder\\raw_data"
 instrument_settings = {"ARM_aps": {
         "instrument_name": "AOS_aps_data",
         "data_stream_name": ["aos_aps_1D", "aos_aps_2D"],
-        "data_processing_function": "SMPS_processing",
         "data_loading_function": "netcdf_load",
         "relative_data_folder": "ARM_aos_aps",
-        "last_file_processed": "",
-        "last_timestamp_processed": "",
-        "Time_shift_to_Linux_Epoch_sec": 0,
+        "Time_shift_sec": 0,
+        "timezone_identifier": "UTC",
         "netcdf_reader": {
             "data_1d": ['total_N_conc',
                         'total_SA_conc'],
@@ -80,7 +78,7 @@ plt.tick_params(rotation=-35)
 # ax.set_xlim((epoch_start, epoch_end))
 ax.xaxis.set_major_formatter(dates.DateFormatter('%m/%d'))
 # ax.xaxis.set_minor_formatter(dates.DateFormatter('%d'))
-# ax.set_ylim((0,50))
+ax.set_ylim(bottom=0)
 ax.grid()
 ax.legend()
 # fig.savefig(save_fig_path+'\\'+'unint_mass.pdf', dpi=300)

@@ -12,6 +12,7 @@ import numpy as np
 import pandas as pd
 
 from datacula import convert
+from datacula.time_manage import time_str_to_epoch
 
 FILTER_WARNING_FRACTION = 0.5
 
@@ -164,7 +165,8 @@ def parse_time_column(
             time_format: str,
             line: str,
             date_offset: str = None,
-            seconds_shift: int = 0
+            seconds_shift: int = 0,
+            timezone_identifier: str = 'UTC'
         ) -> float:
     """
     Parses the time column of a data line and returns it as a timestamp.
@@ -195,27 +197,34 @@ def parse_time_column(
     """
     if time_format == 'epoch':
         # if the time is in epoch format
-        return float(line[time_column]) + seconds_shift
+        time_epoch = float(line[time_column]) + seconds_shift
+        return time_epoch
     if date_offset:
         # if the time is in one column, and the date is fixed
         time_str = f"{date_offset} {line[time_column]}"
-        return datetime.strptime(
+        time_epoch = time_str_to_epoch(
                                     time_str,
-                                    time_format
-                                ).timestamp() + seconds_shift
+                                    time_format,
+                                    timezone_identifier
+                                ) + seconds_shift
+        return time_epoch
     if isinstance(time_column, int):
         # if the time and date are in one column
-        return datetime.strptime(
+        time_epoch = time_str_to_epoch(
                                     line[time_column],
-                                    time_format
-                                ).timestamp() + seconds_shift
+                                    time_format,
+                                    timezone_identifier
+                                ) + seconds_shift
+        return time_epoch
     if isinstance(time_column, list) and len(time_column) == 2:
         # if the time and date are in two column
         time_str = f"{line[time_column[0]]} {line[time_column[1]]}"
-        return datetime.strptime(
+        time_epoch = time_str_to_epoch(
                                     time_str,
-                                    time_format
-                                ).timestamp() + seconds_shift
+                                    time_format,
+                                    timezone_identifier
+                                ) + seconds_shift
+        return time_epoch
     raise ValueError(
         f"Invalid time column or format: {time_column}, {time_format}")
 
@@ -228,6 +237,7 @@ def sample_data(
             delimiter: str,
             date_offset: str = None,
             seconds_shift: int = 0,
+            timezone_identifier: str = 'UTC'
         ) -> Tuple[np.ndarray, np.ndarray]:
     """
     Samples the data to get the time and data streams.
@@ -249,6 +259,8 @@ def sample_data(
         'days:hours:minutes:seconds'. Defaults to None.
     seconds_shift : int, optional
         An integer that represents a time shift in seconds. Defaults to 0.
+    timezone_identifier : str, optional
+        What timezone the data is in. Defaults to 'UTC'.
 
     Returns:
     --------
@@ -277,7 +289,8 @@ def sample_data(
             time_format=time_format,
             line=line_array,
             date_offset=date_offset,
-            seconds_shift=seconds_shift
+            seconds_shift=seconds_shift,
+            timezone_identifier=timezone_identifier
         )
 
         for j, col in enumerate(data_columns):
@@ -348,6 +361,7 @@ def general_data_formatter(
     delimiter: str = ',',
     date_offset: str = None,
     seconds_shift: int = 0,
+    timezone_identifier: str = 'UTC'
 ) -> Tuple[np.array, np.array]:
     """
     Formats and samples the data to get the time and data streams.
@@ -389,6 +403,7 @@ def general_data_formatter(
         delimiter,
         date_offset,
         seconds_shift,
+        timezone_identifier
     )
 
     return epoch_time, data_array

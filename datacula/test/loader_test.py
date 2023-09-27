@@ -28,10 +28,14 @@ def test_filter_list():
 
 
 def test_parse_time_column():
+    import pytz
     """Test the parse_time_column function."""
     line = '2022-01-01 12:00:00,0.5,0.6'.split(',')
     time_format = '%Y-%m-%d %H:%M:%S'
-    expected_timestamp = datetime(2022, 1, 1, 12, 0, 0).timestamp()
+
+    expected_timestamp = datetime(
+        2022, 1, 1, 12, 0, 0,
+        tzinfo=pytz.timezone('UTC')).timestamp()
 
     # Test case with a single time column as integer index
     time_column_int = 0

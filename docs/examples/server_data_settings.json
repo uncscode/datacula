@@ -8,7 +8,7 @@
         "last_file_processed": "",
         "last_timestamp_processed": "",
         "skipRowsDict": 0,
-        "Time_shift_to_Linux_Epoch_sec": -2082844800,
+        "Time_shift_sec": -2082844800,
         "data_checks": {
             "characters": [0,100],
             "commas_count": 0,
@@ -32,7 +32,7 @@
         "last_file_processed": "",
         "last_timestamp_processed": "",
         "skipRowsDict": 0,
-        "Time_shift_to_Linux_Epoch_sec": 0
+        "Time_shift_sec": 0
     },
     "PASS3_data": {
         "instrument_name": "PASS3",
@@ -43,7 +43,7 @@
         "last_file_processed": "",
         "last_timestamp_processed": "",
         "skipRowsDict": 0,
-        "Time_shift_to_Linux_Epoch_sec": 0,
+        "Time_shift_sec": 0,
         "data_checks": {
             "characters": [0,1100],
             "commas_count": 63,
@@ -103,7 +103,7 @@
         "last_file_processed": "",
         "last_timestamp_processed": "",
         "skipRowsDict": 0,
-        "Time_shift_to_Linux_Epoch_sec": -18000,
+        "Time_shift_sec": -18000,
         "data_checks": {
             "characters": [0,300],
             "commas_count": -1,
@@ -136,7 +136,7 @@
         "last_file_processed": "",
         "last_timestamp_processed": "",
         "skipRowsDict": 0,
-        "Time_shift_to_Linux_Epoch_sec": 0
+        "Time_shift_sec": 0
     },
     "CHOH_aeris_data": {
         "instrument_name": "Aries_CHOH",
@@ -147,7 +147,7 @@
         "last_file_processed": "",
         "last_timestamp_processed": "",
         "skipRowsDict": 0,
-        "Time_shift_to_Linux_Epoch_sec": 0,
+        "Time_shift_sec": 0,
         "data_checks": {
             "characters": 100,
             "commas_count": 16,
@@ -185,7 +185,7 @@
         "last_file_processed": "",
         "last_timestamp_processed": "",
         "skipRowsDict": 0,
-        "Time_shift_to_Linux_Epoch_sec": 0
+        "Time_shift_sec": 0
     },
     "CPC_3010_data": {
         "instrument_name": "CPC_3010",
@@ -196,7 +196,7 @@
         "last_file_processed": "",
         "last_timestamp_processed": "",
         "skipRowsDict": 0,
-        "Time_shift_to_Linux_Epoch_sec": 0,
+        "Time_shift_sec": 0,
         "data_checks": {
             "characters": [20,35],
             "commas_count": 4,
@@ -220,7 +220,7 @@
         "last_file_processed": "",
         "last_timestamp_processed": "",
         "skipRowsDict": 0,
-        "Time_shift_to_Linux_Epoch_sec": 0
+        "Time_shift_sec": 0
     },
     "NOx_data": {
         "instrument_name": "Tech2B_NOx",
@@ -239,7 +239,7 @@
         "last_file_processed": "",
         "last_timestamp_processed": "",
         "skipRowsDict": 0,
-        "Time_shift_to_Linux_Epoch_sec": 0,
+        "Time_shift_sec": 0,
         "data_checks": {
             "characters": 100,
             "commas_count": 14,
@@ -271,7 +271,7 @@
         "last_file_processed": "",
         "last_timestamp_processed": "",
         "skipRowsDict": 0,
-        "Time_shift_to_Linux_Epoch_sec": 0
+        "Time_shift_sec": 0
     },
     "SPAMS_data": {
         "instrument_name": "LANL_SPAMS",
@@ -282,7 +282,7 @@
         "last_file_processed": "",
         "last_timestamp_processed": "",
         "skipRowsDict": 0,
-        "Time_shift_to_Linux_Epoch_sec": 3600,
+        "Time_shift_sec": 3600,
         "data_checks": {
             "characters": [0,100],
             "commas_count": 0,
@@ -322,7 +322,7 @@
         "last_file_processed": "",
         "last_timestamp_processed": "",
         "skipRowsDict": 0,
-        "Time_shift_to_Linux_Epoch_sec": 0,
+        "Time_shift_sec": 0,
         "data_checks": {
             "characters": 200,
             "commas_count": 42,
@@ -382,7 +382,7 @@
             "last_file_processed": "",
             "last_timestamp_processed": "",
             "skipRowsDict": 0,
-            "Time_shift_to_Linux_Epoch_sec": 0,
+            "Time_shift_sec": 0,
             "data_checks": {
                 "characters": 400,
                 "commas_count": 48,
@@ -436,7 +436,7 @@
         "last_file_processed": "",
         "last_timestamp_processed": "",
         "skipRowsDict": 0,
-        "Time_shift_to_Linux_Epoch_sec": 0,
+        "Time_shift_sec": 0,
         "data_checks": {
             "characters": 200,
             "commas_count": -1,
@@ -490,7 +490,7 @@
         "last_file_processed": "",
         "last_timestamp_processed": "",
         "skipRowsDict": 0,
-        "Time_shift_to_Linux_Epoch_sec": 0,
+        "Time_shift_sec": 0,
         "data_checks": {
             "characters": 200,
             "commas_count": -1,

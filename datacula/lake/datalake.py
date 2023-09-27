@@ -512,7 +512,8 @@ class DataLake():
             time_format=self.settings[key]['time_format'],
             delimiter=self.settings[key]['data_delimiter'],
             date_offset=date_offset,
-            seconds_shift=self.settings[key]['Time_shift_to_Linux_Epoch_sec']
+            seconds_shift=self.settings[key]['Time_shift_sec'],
+            timezone_identifier=self.settings[key]['timezone_identifier']
         )
 
         # Transpose the data

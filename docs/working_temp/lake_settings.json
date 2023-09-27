@@ -8,7 +8,7 @@
         "last_file_processed": "",
         "last_timestamp_processed": "",
         "skipRowsDict": 0,
-        "Time_shift_to_Linux_Epoch_sec": 0,
+        "Time_shift_sec": 0,
         "data_checks": {
             "characters": [0,1100],
             "char_counts": {",": 63, ":": 2},
@@ -66,7 +66,7 @@
         "last_file_processed": "",
         "last_timestamp_processed": "",
         "skipRowsDict": 0,
-        "Time_shift_to_Linux_Epoch_sec": 0,
+        "Time_shift_sec": 0,
         "data_checks": {
             "characters": [200],
             "skip_rows": 1,
@@ -124,7 +124,7 @@
             "last_file_processed": "",
             "last_timestamp_processed": "",
             "skipRowsDict": 0,
-            "Time_shift_to_Linux_Epoch_sec": 0,
+            "Time_shift_sec": 0,
             "data_checks": {
                 "characters": [400],
                 "skip_rows": 6,
@@ -176,7 +176,7 @@
         "last_file_processed": "",
         "last_timestamp_processed": "",
         "skipRowsDict": 0,
-        "Time_shift_to_Linux_Epoch_sec": 0,
+        "Time_shift_sec": 0,
         "data_checks": {
             "characters": [250],
             "skip_rows": 24,
@@ -228,7 +228,7 @@
         "last_file_processed": "",
         "last_timestamp_processed": "",
         "skipRowsDict": 0,
-        "Time_shift_to_Linux_Epoch_sec": 0,
+        "Time_shift_sec": 0,
         "data_checks": {
             "characters": [200],
             "skip_rows": 6,
@@ -273,7 +273,7 @@
         "last_file_processed": "",
         "last_timestamp_processed": "",
         "skipRowsDict": 0,
-        "Time_shift_to_Linux_Epoch_sec": 0,
+        "Time_shift_sec": 0,
         "data_checks": {
             "characters": [200,300],
             "skip_rows": 14,
@@ -321,7 +321,7 @@
         "last_file_processed": "",
         "last_timestamp_processed": "",
         "skipRowsDict": 0,
-        "Time_shift_to_Linux_Epoch_sec": 0,
+        "Time_shift_sec": 0,
         "data_checks": {
             "characters": [50,120],
             "skip_rows": 21,
@@ -351,7 +351,7 @@
         "last_file_processed": "",
         "last_timestamp_processed": "",
         "skipRowsDict": 0,
-        "Time_shift_to_Linux_Epoch_sec": 0,
+        "Time_shift_sec": 0,
         "data_checks": {
             "characters": [180],
             "skip_rows": 8,
@@ -391,7 +391,7 @@
         "last_file_processed": "",
         "last_timestamp_processed": "",
         "skipRowsDict": 0,
-        "Time_shift_to_Linux_Epoch_sec": -2082844800,
+        "Time_shift_sec": -2082844800,
         "data_checks": {
             "characters": [0,100],
             "skip_rows": 14,
@@ -414,7 +414,7 @@
         "last_file_processed": "",
         "last_timestamp_processed": "",
         "skipRowsDict": 0,
-        "Time_shift_to_Linux_Epoch_sec": 3600,
+        "Time_shift_sec": 3600,
         "data_checks": {
             "characters": [0,100],
             "char_counts": {":": 2, "/": 2},

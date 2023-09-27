@@ -8,7 +8,8 @@ import numpy as np
 from matplotlib import pyplot as plt, dates
 import json
 from datacula.lake.datalake import DataLake
-from datacula.lake import processer, plot
+from datacula.lake import plot
+from datacula.lake import processer
 from datacula import loader
 from datetime import datetime, timedelta
 import pytz
@@ -48,18 +49,69 @@ path = "D:\\Tracer\\working_folder\\raw_data"
 
 #%%
 keys_subset = ["SP2_data", "SPAMS_data", "CAPS_data", "SMPS_data", "APS3320_data"]
+keys_subset = ["APS3320_data", "ARM_aps"]
 # ["PASS3_data", "picarro_data","SP2_data", "SPAMS_data", "CAPS_data_data", "SMPS_data", "APS_data", "CCNc"]
 simple_settings = {key: settings[key] for key in keys_subset}
 
 datalake = DataLake(simple_settings, path)
 
 datalake.update_datastream()
+datalake.info()
 datalake.remove_zeros()
 
 
 # %% 
 epoch_start = datetime.fromisoformat('2022-06-30T19:00').timestamp()
 epoch_end = datetime.fromisoformat('2022-08-01T05:00').timestamp()
+
+datalake = processer.sizer_mean_properties(
+    datalake=datalake,
+    stream_key='aps_2D',
+    new_key='lanl_aps_mean_properties',
+    diameter_multiplier_to_nm=1000,
+)
+datalake = processer.sizer_mean_properties(
+    datalake=datalake,
+    stream_key='aos_aps_2D',
+    new_key='aos_aps_mean_properties',
+    diameter_multiplier_to_nm=1000,
+)
+datalake.info()
+datalake.reaverage_datastreams(600, epoch_start=epoch_start, epoch_end=epoch_end)
+
+
+
+
+
+
+
+# %%
+
+fig, ax = plt.subplots()
+plot.timeseries(
+    ax,
+    datalake,
+    'aos_aps_1D',
+    'surface_area_concentration_nm_cm3',
+    'arm',
+    shade=True)
+
+ax.minorticks_on()
+plt.tick_params(rotation=-35)
+# ax.set_ylabel('Particle Mass (ug/m3)')
+# ax.set_xlim((epoch_start, epoch_end))
+ax.xaxis.set_major_formatter(dates.DateFormatter('%m/%d'))
+# ax.xaxis.set_minor_formatter(dates.DateFormatter('%d'))
+ax.set_ylim(bottom=0)
+ax.grid()
+ax.legend()
+
+
+
+
+
+
+
 
 # %% 
 # truncation processing

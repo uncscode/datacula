@@ -296,9 +296,9 @@ def sizer_mean_properties(
         stream_key: str,
         new_key: str = 'sizer_mean_properties',
         sizer_limits: Optional[List[float]] = None,
-        density: float = 1.5
+        density: float = 1.5,
+        diameter_multiplier_to_nm: float = 1.0
     ) -> object:
-
     """
     Calculates the mean properties of the size distribution. Adds the data to
     the datalake.
@@ -315,6 +315,8 @@ def sizer_mean_properties(
         The lower and upper limits of the size of interest. The default is None.
     density : float, optional
         The density of the particles. The default is 1.5.
+    diameters_multiplier_to_nm : float, optional
+        The multiplier to convert the diameters to nm. The default is 1.0.
 
     Returns
     -------
@@ -325,7 +327,7 @@ def sizer_mean_properties(
     time = datalake.datastreams[stream_key].return_time(datetime64=False)
     sizer_diameter_smps = np.array(
         datalake.datastreams[stream_key].return_header_list()
-        ).astype(float)
+        ).astype(float) * diameter_multiplier_to_nm # convert to nm
     sizer_dndlogdp_smps = np.nan_to_num(
         datalake.datastreams[stream_key].return_data())
 

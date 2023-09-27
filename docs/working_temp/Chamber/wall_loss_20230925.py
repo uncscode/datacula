@@ -49,7 +49,7 @@ settings = {
         "last_file_processed": "",
         "last_timestamp_processed": "",
         "skipRowsDict": 0,
-        "Time_shift_to_Linux_Epoch_sec": 0,
+        "Time_shift_sec": 0,
         "data_checks": {
             "characters": [200],
             "skip_rows": 24,
