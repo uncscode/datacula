@@ -540,12 +540,12 @@ class DataLake():
             If None, default keys ['CAPS_dual', 'pass3'] are used.
         """
         if zeros_keys is None:
-            zeros_keys = ['CAPS_dual', 'pass3']
+            zeros_keys = ['CAPS_data', 'pass3']
 
         for key in zeros_keys:
             if key in self.datastreams:
                 if key == 'CAPS_dual':
-                    self.datastreams['CAPS_dual'] = stats.drop_zeros(
+                    self.datastreams['CAPS_data'] = stats.drop_zeros(
                             datastream_object=self.datastreams['CAPS_dual'],
                             zero_keys=['Zero_dry_CAPS', 'Zero_wet_CAPS']
                         )

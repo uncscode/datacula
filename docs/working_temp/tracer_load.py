@@ -31,7 +31,7 @@ plt.rcParams.update({'text.color': "#333333",
 # %%
 # settings_path = "C:\\Users\\253393\\Documents\\GitHub\\CAFE-processing\\server\\dev\\server_data_settings.json"
 # settings_path = "C:\\Code\\datacula\\private_dev\\lake_settings.json"
-settings_path = "F:\\Tracer\\working_folder\\lake_settings.json"
+settings_path = "D:\\Tracer\\working_folder\\lake_settings.json"
 # settings_path = "C:\\Users\\kkgor\\OneDrive\\Documents\\GitHub\\CAFE-processing\\server\\dev\\server_data_settings.json"
 
 #load json file
@@ -42,23 +42,37 @@ with open(settings_path,
 
 # %%
 # path = "C:\\Users\\253393\\Desktop\\hard_drive_backup\\working_folder\\raw_data\\"
-path = "U:\\Projects\\TRACER_analysis\\working_folder\\raw_data"
-path = "F:\\Tracer\\working_folder\\raw_data"
+# path = "U:\\Projects\\TRACER_analysis\\working_folder\\raw_data"
+path = "D:\\Tracer\\working_folder\\raw_data"
 # path = "U:\\code_repos\\CAFE-processing\\server\\server_files\\"
 # path = "C:\\Users\\kkgor\\OneDrive\\Documents\\GitHub\\CAFE-processing\\server\\server_files\\"
 # settings = get_server_data_settings()
 
 #%%
-keys_subset = ["SP2_data", "SPAMS_data", "CAPS_data", "SMPS_data", "APS3320_data"]
-keys_subset = ["APS3320_data", "ARM_aps"]
-# ["PASS3_data", "picarro_data","SP2_data", "SPAMS_data", "CAPS_data_data", "SMPS_data", "APS_data", "CCNc"]
+keys_subset = ["SP2_data",
+               "SPAMS_data",
+               "CAPS_data",
+               "SMPS_data",
+               "APS3320_data",
+               "CCNc_data",
+               "ARM_aps",
+               "ARM_met",
+               "ARM_psap",
+               "ARM_ccnc",
+               "ARM_cpc_fine",
+               "ARM_cpc_ultra",
+               "ARM_neph_dry",
+               ]
+# keys_subset = ["APS3320_data", "ARM_aps"]
 simple_settings = {key: settings[key] for key in keys_subset}
 
 datalake = DataLake(simple_settings, path)
 
 datalake.update_datastream()
+loader.save_datalake(path=path, data_lake=datalake, sufix_name='full_raw')
+
 datalake.info()
-datalake.remove_zeros()
+# datalake.remove_zeros()
 
 
 # %% 

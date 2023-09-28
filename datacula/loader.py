@@ -818,8 +818,12 @@ def netcdf_data_1d_load(
     )
     # select and fill masked array with nan
     for i, data_col in enumerate(settings['netcdf_reader']['data_1d']):
-        data = nc_file.variables.get(data_col)[:]
-        data_1d[i, :] = np.ma.filled(data.astype(float), np.nan)
+        try:
+            data = nc_file.variables.get(data_col)[:]
+            data_1d[i, :] = np.ma.filled(data.astype(float), np.nan)
+        except (TypeError, KeyError):
+            data_1d[i, :] = np.nan
+            warnings.warn([data_col + " not found in the netCDF file"])
     nc_file.close()
 
     # check data shape, transpose if necessary so that time is last dimension
@@ -913,7 +917,9 @@ def netcdf_info_print(file_path, file_return=False):
     print("\nHeaders:")
     for attr in nc_file.ncattrs():
         print(attr, "=", getattr(nc_file, attr))
-    nc_file.close()
 
     if file_return:
         return nc_file
+    else:
+        nc_file.close()
+        return None
