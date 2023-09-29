@@ -157,6 +157,11 @@ def data_format_checks(data: List[str], data_checks: dict) -> List[str]:
         data = filter_list(data, char_counts)
     # Strip any leading or trailing whitespace from the rows.
     data = [x.strip() for x in data]
+
+    # raise ValueError('No data left in file')
+    if len(data) == 0:
+        raise ValueError('No data left in file')
+    
     return data
 
 

@@ -525,8 +525,12 @@ class DataLake():
             timezone_identifier=self.settings[key]['timezone_identifier']
         )
 
-        # Transpose the data
-        data = data.T
+        # check data shape
+        data = convert.data_shape_check(
+            time=epoch_time,
+            data=data,
+            header=self.settings[key]['data_header'])
+        
         return epoch_time, data
 
     def remove_zeros(self, zeros_keys: Optional[List[str]] = None) -> None:
