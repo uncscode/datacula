@@ -127,18 +127,16 @@ datalake = processer.sizer_mean_properties(
 # %% average
 
 datalake.remove_outliers(
-    datastreams_keys=['merged_mean_properties', 'smps_mean_properties'],
-    outlier_headers=['Unit_Mass_(ug/m3)_PM10', 'Unit_Mass_(ug/m3)_PM2.5'],
-    mask_top=200,
+    datastreams_keys=['merged_mean_properties',
+                      'smps_mean_properties',
+                      'aos_merged_mean_properties',],
+    outlier_headers=['Unit_Mass_(ug/m3)_PM10',
+                     'Unit_Mass_(ug/m3)_PM2.5'
+                     'Unit_Mass_(ug/m3)_PM10',],
+    mask_top=100,
     mask_bottom=0
 )
 
-datalake.remove_outliers(
-    datastreams_keys=['merged_mean_properties', 'smps_mean_properties'],
-    outlier_headers=['Unit_Mass_(ug/m3)_PM10', 'Unit_Mass_(ug/m3)_PM2.5'],
-    mask_top=200,
-    mask_bottom=0
-)
 
 # %% ratios
 

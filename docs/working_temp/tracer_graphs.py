@@ -38,7 +38,16 @@ plt.rcParams.update({'text.color': base_color,
 path = "D:\\Tracer\\working_folder\\raw_data"
 
 datalake = loader.load_datalake(path=path, sufix_name='processed')
-
+datalake.remove_outliers(
+    datastreams_keys=['merged_mean_properties',
+                      'smps_mean_properties',
+                      'aos_merged_mean_properties',],
+    outlier_headers=['Unit_Mass_(ug/m3)_PM10',
+                     'Unit_Mass_(ug/m3)_PM1',
+                     'Unit_Mass_(ug/m3)_PM10',],
+    mask_top=100,
+    mask_bottom=0
+)
 datalake.info(header_print_count=10, limit_header_print=True)
 # datalake.remove_zeros()
 
@@ -90,8 +99,8 @@ colors = {
     "fire": TAILWIND['red']['500'],
     "PM1": TAILWIND['stone']['400'],
     "PM10": TAILWIND['stone']['700'],
-    "AOD_laport": TAILWIND['violet']['700'],
-    "AOD_puerto_rico": TAILWIND['violet']['400'],
+    "AOD_laport": TAILWIND['violet']['400'],
+    "AOD_puerto_rico": TAILWIND['violet']['700'],
 }
 
 # timeseries_left = np.datetime64('07/11/2022 00:00', time_format)
@@ -116,7 +125,7 @@ fig, ax = plt.subplots()
 plot.timeseries(
     ax,
     datalake,
-    "aos_aps_mean_properties",
+    "aos_merged_mean_properties",
     "Mass_(ug/m3)_PM10",
     "aos PM10",
     color=colors['PM10'],
@@ -125,7 +134,7 @@ plot.timeseries(
 plot.timeseries(
     ax,
     datalake,
-    'merged_mean_properties',
+    'aos_merged_mean_properties',
     'Mass_(ug/m3)_PM1',
     'PM1',
     color=colors['PM1'],
@@ -145,6 +154,18 @@ plot.timeseries(
                  'marker': 'o',
                  'markersize': 4,
                  'markerfacecolor': colors['AOD_laport']})
+plot.timeseries(
+    ax2,
+    datalake,
+    'aeronet_puerto_ric',
+    'total_aod_500nm[tau]',
+    'AOD',
+    shade=False,
+    color=colors['AOD_puerto_rico'],
+    line_kwargs={'linestyle': '',
+                 'marker': '^',
+                 'markersize': 6,
+                 'markerfacecolor': colors['AOD_puerto_rico']})
 ax2.set_ylabel('Aerosol Optical Depth (500 nm)', color=colors['AOD_laport'])
 ax2.set_ylim(bottom=0, top=1)
 ax2.tick_params(axis='y', labelcolor=colors['AOD_laport'], color=colors['AOD_laport'])

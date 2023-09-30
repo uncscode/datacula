@@ -49,7 +49,8 @@ path = "D:\\Tracer\\working_folder\\raw_data"
 # settings = get_server_data_settings()
 
 #%%
-keys_subset = ["aeronet_PuertoRico",
+keys_subset = ["aeronet_PuertoRico_shift",
+               "aeronet_PuertoRico",
                "SP2_data",
                "SPAMS_data",
                "CAPS_data",
