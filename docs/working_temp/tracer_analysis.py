@@ -47,7 +47,7 @@ time_format = "%m/%d/%Y %H:%M:%S"
 tracer_timezone = pytz.timezone('US/Central')
 epoch_start = time_str_to_epoch('07/01/2022 00:00:00', time_format, 'US/Central')
 epoch_end = time_str_to_epoch('07/28/2022 00:00:00', time_format, 'US/Central')
-datalake.reaverage_datastreams(600, epoch_start=epoch_start, epoch_end=epoch_end)
+datalake.reaverage_datastreams(300, epoch_start=epoch_start, epoch_end=epoch_end)
 # epoch_start = datetime.fromisoformat('2022-06-30T19:00').timestamp()
 # epoch_end = datetime.fromisoformat('2022-08-01T05:00').timestamp()
 
@@ -56,6 +56,11 @@ datalake.remove_outliers(
     datastreams_keys=['arm_aeronet_sda'],
     outlier_headers=['total_aod_500nm[tau]'],
     mask_value=-999.0000
+)
+datalake.remove_outliers(
+    datastreams_keys=['CAPS_data'],
+    outlier_headers=['Bext_dry_CAPS_450nm[1/Mm]'],
+    mask_top=200,
 )
 datalake = processer.merge_smps_ops_datastreams(
     datalake=datalake,
@@ -114,10 +119,9 @@ datalake = processer.caps_processing(
     calibration_wet=0.95,
     calibration_dry=1.003
 )
-
+datalake.reaverage_datastreams(60)
 datalake = processer.albedo_processing(datalake=datalake)
 
-datalake.reaverage_datastreams(600)
 loader.save_datalake(path=path, data_lake=datalake, sufix_name='processed')
 
 datalake.info()

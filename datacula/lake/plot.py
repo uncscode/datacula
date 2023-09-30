@@ -72,3 +72,60 @@ def timeseries(
         label=label,
         **line_kwargs
     )
+
+
+def histogram(
+        plot_ax,
+        datalake,
+        datastream_key,
+        data_key,
+        label,
+        bins,
+        range,
+        color=None,
+        raw=False,
+        kwargs=None,
+    ):
+    """
+    Plot a datastream from the datalake.
+
+    Parameters
+    ----------
+    plot_ax : matplotlib.axes._subplots.AxesSubplot
+        The axis to plot on.
+    datalake : DataLake
+        The datalake to plot from.
+    datastream_key : str
+        The key of the datastream to plot.
+    data_key : str
+        The key of the data to plot.
+    label : str
+        The label for the plot.
+    bins : int
+        The number of bins for the histogram.
+    range : tuple
+        The range of the histogram.
+    color : str, optional
+        The color of the plot, by default None
+    raw : bool, optional
+        Whether to use the un-averaged data, by default False
+    kwargs : dict
+        The keyword arguments for the hist plot.
+    
+    """
+    if kwargs is None:
+        kwargs = {}
+    if color is None:
+        color = plot_ax._get_lines.get_next_color()
+
+    data = datalake.datastreams[datastream_key].return_data(
+        keys=[data_key],
+        raw=raw)[0]
+
+    plot_ax.hist(
+        data,
+        bins=bins,
+        range=range,
+        label=label,
+        color=color,
+        **kwargs)
