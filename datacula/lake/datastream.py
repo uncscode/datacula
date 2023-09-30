@@ -575,11 +575,9 @@ class DataStream():
         # Return either the raw data or the averaged data
         if raw:
             if datetime64:
-
-                raise NotImplementedError  # not working implement this
-
-                # return convert.datetime64_from_epoch_array(
-                #     self.time_stream)
+                # raise NotImplementedError  # not working implement this
+                return convert.datetime64_from_epoch_array(
+                    self.time_stream)
             return self.time_stream
         else:
             if datetime64:

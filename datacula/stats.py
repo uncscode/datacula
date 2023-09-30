@@ -266,3 +266,75 @@ def average_to_interval(
             start_index = stop_index
 
     return average_base_data, average_base_data_std
+
+
+def mask_outliers(
+        data: np.ndarray,
+        bottom: float=None,
+        top: float=None,
+        value: float=None,
+        invert: bool=False
+        ) -> np.ndarray:
+    """
+    Creat a boolean mask for outliers in a data array. Outliers are defined as
+    values that are either above or below a specified threshold, or that are
+    equal to a specified value. Not all parameters need to be specified. If 
+    `invert` is True, the mask will be inverted. The mask will be True for
+    False for outliers and True for non-outliers.
+
+    Parameters:
+    ----------
+        data (np.ndarray): The data array to be masked.
+        bottom (float): The lower threshold for outliers.
+        top (float): The upper threshold for outliers.
+        value (float): The value to be masked.
+        invert (bool): If True, the mask will be inverted.
+
+    Returns:
+    -------
+        np.ndarray: A boolean mask for the outliers in the data array.
+    """
+
+    # initialize the mask
+    mask = np.zeros(data.shape, dtype=bool)
+
+    # mask values below the bottom threshold
+    if bottom is not None:
+        mask = np.logical_or(mask, data < bottom)
+
+    # mask values above the top threshold
+    if top is not None:
+        mask = np.logical_or(mask, data > top)
+
+    # mask values equal to the specified value
+    if value is not None:
+        mask = np.logical_or(mask, data == value)
+
+    # if you want true = outliers
+    if invert:
+        return mask
+
+    # invert the mask to get true= non-outliers and false=outliers
+    mask = np.logical_not(mask)
+    return mask
+
+
+def drop_mask(datastream_object: object, mask: np.ndarray) -> object:
+    """Drop rows where mask is false, and return data stream.
+
+    Parameters
+    ----------
+    datastream_object : object
+        data stream object
+    mask : np.ndarray
+        mask to apply to data stream
+
+    Returns
+    -------
+    object
+        data stream object
+    """
+    datastream_object.data_stream = datastream_object.data_stream[:, mask[0, :]]
+    datastream_object.time_stream = datastream_object.time_stream[mask[0, :]]
+    datastream_object.reaverage()
+    return datastream_object

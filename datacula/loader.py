@@ -617,6 +617,7 @@ def save_datalake(path: str, data_lake: object = None, sufix_name: str = None):
     sufix_name : str, optional
         Suffix to add to pickle file name. The default is None.
     """
+    print('Saving datalake...')
     # create output folder if it does not exist
     output_folder = os.path.join(path, 'output')
     os.makedirs(output_folder, exist_ok=True)
@@ -633,6 +634,7 @@ def save_datalake(path: str, data_lake: object = None, sufix_name: str = None):
     # save datalake
     with open(file_path, 'wb') as file:
         pickle.dump(data_lake, file)
+    print('Datalake saved')
 
 
 def load_datalake(path: str, sufix_name: str = None) -> object:

@@ -28,51 +28,15 @@ plt.rcParams.update({'text.color': "#333333",
                      "pdf.fonttype": 42,
                      "ps.fonttype": 42})
 
-# %%
-# settings_path = "C:\\Users\\253393\\Documents\\GitHub\\CAFE-processing\\server\\dev\\server_data_settings.json"
-# settings_path = "C:\\Code\\datacula\\private_dev\\lake_settings.json"
-settings_path = "F:\\Tracer\\working_folder\\lake_settings.json"
-# settings_path = "C:\\Users\\kkgor\\OneDrive\\Documents\\GitHub\\CAFE-processing\\server\\dev\\server_data_settings.json"
-
-#load json file
-with open(settings_path, 
-            'r', encoding='utf-8'
-            ) as json_file:
-                settings = json.load(json_file)
 
 # %%
-# path = "C:\\Users\\253393\\Desktop\\hard_drive_backup\\working_folder\\raw_data\\"
-# path = "U:\\Projects\\TRACER_analysis\\working_folder\\raw_data"
+
 path = "F:\\Tracer\\working_folder\\raw_data"
-# path = "U:\\code_repos\\CAFE-processing\\server\\server_files\\"
-# path = "C:\\Users\\kkgor\\OneDrive\\Documents\\GitHub\\CAFE-processing\\server\\server_files\\"
-# settings = get_server_data_settings()
+
 
 #%%
-keys_subset = ["SP2_data",
-               "SPAMS_data",
-               "CAPS_data",
-               "SMPS_data",
-               "APS3320_data",
-               "CCNc",
-               "ARM_aps",
-               "ARM_met",
-               "ARM_psap",
-               "ARM_ccnc",
-               "ARM_cpc_fine",
-               "ARM_cpc_ultra",
-               "ARM_neph_dry",
-               "ARM_neph_wet",
-               "ARM_laport_aod",
-               "ARM_laport_sda",
-               ]
-# keys_subset = ["APS3320_data", "ARM_aps"]
-simple_settings = {key: settings[key] for key in keys_subset}
 
-datalake = DataLake(simple_settings, path)
-
-datalake.update_datastream()
-loader.save_datalake(path=path, data_lake=datalake, sufix_name='full_raw')
+datalake = loader.load_datalake(path=path, sufix_name='full_raw')
 
 datalake.info()
 # datalake.remove_zeros()
@@ -81,12 +45,32 @@ datalake.info()
 # %% 
 time_format = "%m/%d/%Y %H:%M:%S"
 tracer_timezone = pytz.timezone('US/Central')
-epoch_start = time_str_to_epoch('07/13/2022 00:00:00', time_format, 'US/Central')
-epoch_end = time_str_to_epoch('07/15/2022 00:00:00', time_format, 'US/Central')
-datalake.reaverage_datastreams(600*1, epoch_start=epoch_start, epoch_end=epoch_end)
+epoch_start = time_str_to_epoch('07/01/2022 00:00:00', time_format, 'US/Central')
+epoch_end = time_str_to_epoch('07/28/2022 00:00:00', time_format, 'US/Central')
+datalake.reaverage_datastreams(600, epoch_start=epoch_start, epoch_end=epoch_end)
 # epoch_start = datetime.fromisoformat('2022-06-30T19:00').timestamp()
 # epoch_end = datetime.fromisoformat('2022-08-01T05:00').timestamp()
 
+
+datalake.remove_outliers(
+    datastreams_keys=['arm_aeronet_sda'],
+    outlier_headers=['total_aod_500nm[tau]'],
+    mask_value=-999.0000
+)
+datalake = processer.merge_smps_ops_datastreams(
+    datalake=datalake,
+    lower_key='smps_2D',
+    upper_key='aps_2D',
+    new_key='merged_size_dist',
+)
+
+#%%
+datalake = processer.sizer_mean_properties(
+    datalake=datalake,
+    stream_key='merged_size_dist',
+    new_key='merged_mean_properties',
+    diameter_multiplier_to_nm=1,
+)
 datalake = processer.sizer_mean_properties(
     datalake=datalake,
     stream_key='smps_2D',
@@ -94,59 +78,21 @@ datalake = processer.sizer_mean_properties(
     diameter_multiplier_to_nm=1,
 )
 
-# %%
-
-fig, ax = plt.subplots()
-plot.timeseries(
-    ax,
-    datalake,
-    'smps_mean_properties',
-    'Mass_(ugPm3)',
-    'SMPS',
-    shade=True)
-plot.timeseries(
-    ax,
-    datalake,
-    'spams',
-    'total_mass[ug/m3]',
-    'LANL ams',
-    shade=True)
-# plot.timeseries(
-#     ax,
-#     datalake,
-#     'sp2',
-#     'BC_mass[ug/m3]',
-#     'SP2',
-#     shade=True)
-
-ax.minorticks_on()
-plt.tick_params(rotation=-35)
-ax.set_ylabel('PM10 Unit Mass ($\mu g/m^3$)')
-# ax.set_xlim((epoch_start, epoch_end))
-# ax.set_yscale('log')
-ax.xaxis.set_major_formatter(dates.DateFormatter('%d %H', tz=tracer_timezone))
-# ax.xaxis.set_minor_formatter(dates.DateFormatter('%d'))
-ax.set_ylim(bottom=0, top=20)
-ax.grid()
-# ax.legend()
+datalake = processer.sizer_mean_properties(
+    datalake=datalake,
+    stream_key='aps_2D',
+    new_key='lanl_aps_mean_properties',
+    diameter_multiplier_to_nm=1000,
+)
+datalake = processer.sizer_mean_properties(
+    datalake=datalake,
+    stream_key='aos_aps_2D',
+    new_key='aos_aps_mean_properties',
+    diameter_multiplier_to_nm=1000,
+)
 
 
-
-
-
-
-
-
-# %% 
-# truncation processing
-datalake.reaverage_datastreams(300, epoch_start=epoch_start, epoch_end=epoch_end)
-
-# datalake = processer.pass3_processing(
-#     datalake=datalake,
-#     babs_405_532_781=[1, 1, 1],
-#     bsca_405_532_781=[1.37, 1.2, 1.4],
-# )
-
+#%%
 datalake = processer.caps_processing(
     datalake=datalake,
     truncation_bsca=True,
@@ -156,16 +102,96 @@ datalake = processer.caps_processing(
     calibration_wet=0.95,
     calibration_dry=1.003
 )
-    # calibration_wet=0.985,
-    # calibration_dry=1.002
-# DataLake_saveNload(path, datalake=datalake)
 
-datalake.reaverage_datastreams(300)
 datalake = processer.albedo_processing(datalake=datalake)
-loader.save_datalake(path=path, data_lake=datalake, sufix_name='new_lower')
+
+datalake.reaverage_datastreams(600)
+loader.save_datalake(path=path, data_lake=datalake, sufix_name='processed')
+
+datalake.info()
+
+
+
+# %% average
+
+datalake.remove_outliers(
+    datastreams_keys=['merged_mean_properties', 'smps_mean_properties'],
+    outlier_headers=['Unit_Mass_(ug/m3)_PM10', 'Unit_Mass_(ug/m3)_PM2.5'],
+    mask_top=200,
+    mask_bottom=0
+)
+
+
+epoch_start = time_str_to_epoch('07/12/2022 00:00:00', time_format, 'US/Central')
+epoch_end = time_str_to_epoch('07/25/2022 00:00:00', time_format, 'US/Central')
+datalake.reaverage_datastreams(3600, epoch_start=epoch_start, epoch_end=epoch_end)
+
+
 # %%
-datalake = loader.load_datalake(path=path, sufix_name='new_lower')
-# %%
+fig, ax = plt.subplots()
+plot.timeseries(
+    ax,
+    datalake,
+    'merged_mean_properties',
+    'Unit_Mass_(ug/m3)_PM10',
+    'PM10',
+    shade=True)
+plot.timeseries(
+    ax,
+    datalake,
+    'merged_mean_properties',
+    'Unit_Mass_(ug/m3)_PM1',
+    'PM1',
+    shade=True)
+plt.tick_params(rotation=-35)
+
+ax2 = ax.twinx()
+plot.timeseries(
+    ax2,
+    datalake,
+    'arm_aeronet_sda',
+    'total_aod_500nm[tau]',
+    'AOD',
+    shade=False,
+    color='black')
+ax2.set_ylabel('AOD (500 nm)')
+
+ax.minorticks_on()
+
+ax.set_ylabel('PM10 Unit Mass ($\mu g/m^3$)')
+# ax.set_xlim((epoch_start, epoch_end))
+ax.xaxis.set_major_formatter(dates.DateFormatter('%m/%d', tz=tracer_timezone))
+# ax.xaxis.set_minor_formatter(dates.DateFormatter('%d'))
+ax.set_ylim(bottom=0, top=80)
+ax.grid()
+ax.legend()
+# ax2.legend()
+
+# %% plot aod
+
+fig, ax = plt.subplots()
+
+plot.timeseries(
+    ax,
+    datalake,
+    'arm_aeronet_sda',
+    'total_aod_500nm[tau]',
+    'AOD',
+    shade=True)
+
+ax.minorticks_on()
+plt.tick_params(rotation=-35)
+ax.set_ylabel('AOD')
+ax.xaxis.set_major_formatter(dates.DateFormatter('%m/%d', tz=tracer_timezone))
+# ax.set_ylim(bottom=0, top=0.5)
+ax.grid()
+ax.legend()
+# ax2.legend()
+
+
+
+# %% 
+
 
 tracer_timezone = pytz.timezone('US/Central')
 

@@ -558,3 +558,50 @@ class DataLake():
                             datastream_object=self.datastreams['pass3'],
                             zero_keys=['Zero']
                         )
+    
+    def remove_outliers(
+            self,
+            datastreams_keys: List[str],
+            outlier_headers: List[str],
+            mask_bottom: float = None,
+            mask_top: float = None,
+            mask_value: float = None,
+            invert: bool = False
+            ) -> None:
+        """
+        Removes outliers from the datastreams. Outliers are defined as values
+        that are either above or below the specified mask values. This method
+        operates on the raw data, to undo you have to reload the data.
+
+        Parameters
+        ----------
+        datastreams_keys : list of str
+            List of keys for the datastreams to remove outliers from.
+        outlier_headers : list of str
+            List of headers to pull data from, one for each datastream.
+        mask_bottom : float, optional
+            The bottom mask value, by default None.
+        mask_top : float, optional
+            The top mask value, by default None.
+        mask_value : float, optional
+            The mask value, by default None.
+        invert : bool, optional
+            Whether to invert the mask, by default False.
+        """
+
+        for key_index, key in enumerate(datastreams_keys):
+            if key in self.datastreams:
+                mask_zeros = stats.mask_outliers(
+                    data=self.datastreams[key].return_data(
+                        keys=[outlier_headers[key_index]],
+                        raw=True
+                    ),
+                    bottom=mask_bottom,
+                    top=mask_top,
+                    value=mask_value,
+                    invert=invert
+                )
+                self.datastreams[key] = stats.drop_mask(
+                    datastream_object=self.datastreams[key],
+                    mask=mask_zeros
+                )

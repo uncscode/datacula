@@ -16,6 +16,7 @@ def timeseries(
         line_kwargs=None,
         shade_kwargs=None,
         shade=True,
+        raw=False,
     ):
     """
     Plot a datastream from the datalake.
@@ -46,10 +47,14 @@ def timeseries(
     if color is None:
         color = plot_ax._get_lines.get_next_color()
     
-    time = datalake.datastreams[datastream_key].return_time(datetime64=True)
-    data = datalake.datastreams[datastream_key].return_data(keys=[data_key])[0]
+    time = datalake.datastreams[datastream_key].return_time(
+        datetime64=True,
+        raw=raw)
+    data = datalake.datastreams[datastream_key].return_data(
+        keys=[data_key],
+        raw=raw)[0]
     
-    if shade:
+    if shade and not raw:
         std = datalake.datastreams[datastream_key].return_std(keys=[data_key])[0]
         # plot shaded area
         plot_ax.fill_between(

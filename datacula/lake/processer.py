@@ -323,6 +323,9 @@ def sizer_mean_properties(
     datalake : DataLake
         The datalake with the mean properties added.
     """
+    # check stream key is in datalake
+    if stream_key not in datalake.list_datastreams():
+        raise KeyError('stream_key not in datalake')
 
     time = datalake.datastreams[stream_key].return_time(datetime64=False)
     sizer_diameter_smps = np.array(
@@ -345,6 +348,9 @@ def sizer_mean_properties(
 
     total_concentration_PM01 = np.zeros_like(time) * np.nan
     unit_mass_ugPm3_PM01 = np.zeros_like(time) * np.nan
+
+    total_concentration_PM1 = np.zeros_like(time) * np.nan
+    unit_mass_ugPm3_PM1 = np.zeros_like(time) * np.nan
 
     total_concentration_PM25 = np.zeros_like(time) * np.nan
     unit_mass_ugPm3_PM25 = np.zeros_like(time) * np.nan
@@ -370,6 +376,13 @@ def sizer_mean_properties(
             sizer_limits=[0, 100]
         )
 
+        # total PM1 um concentration
+        total_concentration_PM1[i], unit_mass_ugPm3_PM1[i], _, _, _, _, _ = \
+            size_distribution.mean_properties(
+            sizer_dndlogdp_smps[:, i],
+            sizer_diameter_smps,
+            sizer_limits=[0, 1000]
+        )
         # total PM <2.5 um concentration
         total_concentration_PM25[i], unit_mass_ugPm3_PM25[i], _, _, _, _, _ = \
                      size_distribution.mean_properties(
@@ -388,8 +401,10 @@ def sizer_mean_properties(
 
     mass_ugPm3 = unit_mass_ugPm3 * density
     mass_ugPm3_PM01 = unit_mass_ugPm3_PM01 * density
+    mass_ugPm3_PM1 = unit_mass_ugPm3_PM1 * density
     mass_ugPm3_PM25 = unit_mass_ugPm3_PM25 * density
     mass_ugPm3_PM10 = unit_mass_ugPm3_PM10 * density
+
 
     # combine the data for datalake
     combinded = np.vstack((
@@ -404,6 +419,9 @@ def sizer_mean_properties(
         total_concentration_PM01,
         unit_mass_ugPm3_PM01,
         mass_ugPm3_PM01,
+        total_concentration_PM1,
+        unit_mass_ugPm3_PM1,
+        mass_ugPm3_PM1,
         total_concentration_PM25,
         unit_mass_ugPm3_PM25,
         mass_ugPm3_PM25,
@@ -418,17 +436,20 @@ def sizer_mean_properties(
         'Mode_Diameter_(nm)',
         'Mean_Diameter_Vol_(nm)',
         'Mode_Diameter_Vol_(nm)',
-        'Unit_Mass_(ugPm3)',
-        'Mass_(ugPm3)',
+        'Unit_Mass_(ug/m3)',
+        'Mass_(ug/m3)',
         'Total_Conc_(#/cc)_N100',
-        'Unit_Mass_(ugPm3)_N100',
-        'Mass_(ugPm3)_N100',
+        'Unit_Mass_(ug/m3)_N100',
+        'Mass_(ug/m3)_N100',
+        'Total_Conc_(#/cc)_PM1',
+        'Unit_Mass_(ug/m3)_PM1',
+        'Mass_(ug/m3)_PM1',
         'Total_Conc_(#/cc)_PM2.5',
-        'Unit_Mass_(ugPm3)_PM2.5',
-        'Mass_(ugPm3)_PM2.5',
+        'Unit_Mass_(ug/m3)_PM2.5',
+        'Mass_(ug/m3)_PM2.5',
         'Total_Conc_(#/cc)_PM10',
-        'Unit_Mass_(ugPm3)_PM10',
-        'Mass_(ugPm3)_PM10',
+        'Unit_Mass_(ug/m3)_PM10',
+        'Mass_(ug/m3)_PM10',
     ]
     
     datalake.add_processed_datastream(
@@ -584,8 +605,7 @@ def merge_smps_ops_datastreams(
     upper_key: The key for the upper range distribution (e.g. 'ops_2D').
 
     Returns:
-    A tuple containing the merged diameter distribution and the merged
-        concentration distribution.
+    A datalake object
     
     TODO: add scaling of diamters to the import functions
     """
@@ -628,7 +648,7 @@ def merge_smps_ops_datastreams(
         epoch_end=lower_datastream.average_epoch_end
     )
     # Return the merged diameter distribution and the merged concentration
-    return datalake, merged_diameter, merged_2d
+    return datalake
 
 
 def pass3_processing(

@@ -15,11 +15,11 @@ from typing import List, Union, Tuple, Dict, Any
 from datacula.lake.datalake import DataLake
 from datacula.lake import processer, plot
 # %%
-file_fullpath = "D:\\Tracer\\working_folder\\raw_data\\ARM_laport_aod\\20220620_20220806_ARM_LaPorte.aod"
+file_fullpath = "F:\\Tracer\\working_folder\\raw_data\\ARM_aeronet_sda\\20220601_20220831_ARM_LaPorte.ONEILL_lev20"
 
 
 # file_path = "E:\\Tracer\\working_folder\\raw_data\\ARM_aos_aps\\houaosapsM1.b1.20220627.145726.nc"
-file_path = "D:\\Tracer\\working_folder\\raw_data"
+file_path = "F:\\Tracer\\working_folder\\raw_data"
 # %%
 instrument_settings = {"ARM_laport_aod": {
         "instrument_name": "id_aeronet",
@@ -74,10 +74,13 @@ time_format = "%m/%d/%Y %H:%M:%S"
 tracer_timezone = pytz.timezone('US/Central')
 epoch_start = time_str_to_epoch('07/03/2022 00:00:00', time_format, 'US/Central')
 epoch_end = time_str_to_epoch('07/28/2022 00:00:00', time_format, 'US/Central')
-datalake.reaverage_datastreams(3600*10, epoch_start=epoch_start, epoch_end=epoch_end)
+datalake.reaverage_datastreams(3600, epoch_start=epoch_start, epoch_end=epoch_end)
 
-
-
+# datalake.remove_outliers(
+#     datastreams_keys=['arm_aeronet_sda'],
+#     outlier_headers=['total_aod_500nm[tau]'],
+#     mask_value=-999.0000
+# )
 
 # %%
 
@@ -86,9 +89,12 @@ plot.timeseries(
     ax,
     datalake,
     "arm_aeronet",
-    "aod_extinction_870nm",
+    "aod_extinction_440nm",
     "arm",
-    shade=True)
+    # shade=True,
+    raw=True,
+    line_kwargs={"marker": "o", "markersize": 2}
+)
 
 ax.minorticks_on()
 plt.tick_params(rotation=-35)
