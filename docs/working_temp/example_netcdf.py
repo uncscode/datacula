@@ -15,7 +15,7 @@ from typing import List, Union, Tuple, Dict, Any
 from datacula.lake.datalake import DataLake
 from datacula.lake import processer, plot
 # %%
-file_fullpath = "F:\\Tracer\\working_folder\\raw_data\\ARM_neph_wet\\houaosnephwetM1.b1.20220626.000000.nc"
+file_fullpath = "D:\\Tracer\\working_folder\\raw_data\\aeronet_PuertoRico\\20220701_20220731_La_Parguera.ONEILL_lev10"
 
 nc_file = loader.netcdf_info_print(file_fullpath, file_return=True)
 
@@ -24,38 +24,36 @@ nc_file = loader.netcdf_info_print(file_fullpath, file_return=True)
 
 
 # file_path = "E:\\Tracer\\working_folder\\raw_data\\ARM_aos_aps\\houaosapsM1.b1.20220627.145726.nc"
-file_path = "F:\\Tracer\\working_folder\\raw_data"
+file_path = "D:\\Tracer\\working_folder\\raw_data"
 # %%
 instrument_settings = {
-    "ARM_neph_wet": {
-        "instrument_name": "id_aosnephwet",
-        "data_stream_name": ["arm_neph_wet"],
-        "data_loading_function": "netcdf_load",
-        "relative_data_folder": "ARM_neph_wet",
+    "aeronet_PuertoRico": {
+        "instrument_name": "id_aeronet",
+        "data_stream_name": "aeronet_puerto_rico",
+        "data_loading_function": "general_load",
+        "relative_data_folder": "aeronet_PuertoRico",
         "Time_shift_sec": 0,
         "timezone_identifier": "UTC",
-        "netcdf_reader": {
-            "data_1d": ["Bs_R_Wet_Neph3W",
-                        "Bs_G_Wet_Neph3W",
-                        "Bs_R_Wet_Neph3W",
-                        "Bbs_B_Wet_Neph3W",
-                        "Bbs_G_Wet_Neph3W",
-                        "Bbs_R_Wet_Neph3W",
-                        "RH_Neph_Wet"],
-            "header_1d": ["Bsca450nm_[1/Mm]",
-                          "Bsca550nm_[1/Mm]",
-                          "Bsca700nm_[1/Mm]",
-                          "Bbsca450nm_[1/Mm]",
-                          "Bbsca550nm_[1/Mm]",
-                          "Bbsca700nm_[1/Mm]",
-                          "relative_humidity_[%]"]
-            },
-        "time_column": ["base_time", "time_offset"],
-        "time_format": "epoch",
-        "filename_regex": "*.nc",
-        "base_interval_sec": 60
-        }
+        "data_checks": {
+            "skip_rows": 8,
+            "skip_end": 0
+        },
+        "data_header": [
+            "total_aod_500nm[tau]",
+            "fine_aod_500nm[tau]",
+            "coarse_aod_500nm[tau]",
+            "fine_mode_fraction_500nm"
+        ],
+        "data_column": [
+            4, 5, 6, 7
+        ],
+        "time_column": [0,1],
+        "time_format": "%d:%m:%Y %H:%M:%S",
+        "filename_regex": "*.ONEILL_lev10",
+        "base_interval_sec": 3600,
+        "data_delimiter": ","
     }
+}
 
 
 # "data_2d": "dN_dlogDp",
@@ -86,9 +84,9 @@ fig, ax = plt.subplots()
 plot.timeseries(
     ax,
     datalake,
-    "arm_neph_wet",
-    "Bsca550nm_[1/Mm]",
-    "arm",
+    "aeronet_puerto_rico",
+    "total_aod_500nm[tau]",
+    "AOD",
     shade=True)
 
 ax.minorticks_on()

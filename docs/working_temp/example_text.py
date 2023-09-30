@@ -15,45 +15,35 @@ from typing import List, Union, Tuple, Dict, Any
 from datacula.lake.datalake import DataLake
 from datacula.lake import processer, plot
 # %%
-file_fullpath = "F:\\Tracer\\working_folder\\raw_data\\ARM_aeronet_sda\\20220601_20220831_ARM_LaPorte.ONEILL_lev20"
-
+file_fullpath = "D:\\Tracer\\working_folder\\raw_data\\aeronet_PuertoRico\\20220701_20220731_La_Parguera.ONEILL_lev10"
 
 # file_path = "E:\\Tracer\\working_folder\\raw_data\\ARM_aos_aps\\houaosapsM1.b1.20220627.145726.nc"
-file_path = "F:\\Tracer\\working_folder\\raw_data"
+file_path = "D:\\Tracer\\working_folder\\raw_data"
 # %%
-instrument_settings = {"ARM_laport_aod": {
+instrument_settings = {
+    "aeronet_PuertoRico": {
         "instrument_name": "id_aeronet",
-        "data_stream_name": "arm_aeronet",
+        "data_stream_name": "aeronet_puerto_rico",
         "data_loading_function": "general_load",
-        "relative_data_folder": "ARM_laport_aod",
-        "Time_shift_sec": 0,
+        "relative_data_folder": "aeronet_PuertoRico",
+        "Time_shift_sec": 345600,
         "timezone_identifier": "UTC",
         "data_checks": {
             "skip_rows": 8,
-            "skip_end": 0,
-            "char_counts": {":": 8}
+            "skip_end": 0
         },
         "data_header": [
-            "aod_extinction_440nm",
-            "aod_extinction_675nm",
-            "aod_extinction_870nm",
-            "aod_extinction_1020nm",
-            "fine_aod_extinction_440nm",
-            "fine_aod_extinction_675nm",
-            "fine_aod_extinction_870nm",
-            "fine_aod_extinction_1020nm",
-            "coarse_aod_extinction_440nm",
-            "coarse_aod_extinction_675nm",
-            "coarse_aod_extinction_870nm",
-            "coarse_aod_extinction_1020nm"
+            "total_aod_500nm[tau]",
+            "fine_aod_500nm[tau]",
+            "coarse_aod_500nm[tau]", 
+            "fine_mode_fraction_500nm"
         ],
         "data_column": [
-            5, 6, 7, 8, 9, 10, 11, 12,
-            13, 14, 15, 16
+            4, 5, 6, 7
         ],
-        "time_column": [1,2],
+        "time_column": [0,1],
         "time_format": "%d:%m:%Y %H:%M:%S",
-        "filename_regex": "*.aod",
+        "filename_regex": "*.ONEILL_lev10",
         "base_interval_sec": 3600,
         "data_delimiter": ","
     }
@@ -76,11 +66,11 @@ epoch_start = time_str_to_epoch('07/03/2022 00:00:00', time_format, 'US/Central'
 epoch_end = time_str_to_epoch('07/28/2022 00:00:00', time_format, 'US/Central')
 datalake.reaverage_datastreams(3600, epoch_start=epoch_start, epoch_end=epoch_end)
 
-# datalake.remove_outliers(
-#     datastreams_keys=['arm_aeronet_sda'],
-#     outlier_headers=['total_aod_500nm[tau]'],
-#     mask_value=-999.0000
-# )
+datalake.remove_outliers(
+    datastreams_keys=['aeronet_puerto_rico'],
+    outlier_headers=['total_aod_500nm[tau]'],
+    mask_value=-999.0000
+)
 
 # %%
 
@@ -88,12 +78,12 @@ fig, ax = plt.subplots()
 plot.timeseries(
     ax,
     datalake,
-    "arm_aeronet",
-    "aod_extinction_440nm",
-    "arm",
+    "aeronet_puerto_rico",
+    "total_aod_500nm[tau]",
+    "AOD",
     # shade=True,
     raw=True,
-    line_kwargs={"marker": "o", "markersize": 2}
+    line_kwargs={"marker": "o", "markersize": 2, "linestyle": "None"}
 )
 
 ax.minorticks_on()

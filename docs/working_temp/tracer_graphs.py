@@ -30,11 +30,7 @@ plt.rcParams.update({'text.color': "#333333",
 
 
 # %%
-
-path = "F:\\Tracer\\working_folder\\raw_data"
-
-
-#%%
+path = "D:\\Tracer\\working_folder\\raw_data"
 
 datalake = loader.load_datalake(path=path, sufix_name='processed')
 
@@ -45,31 +41,49 @@ datalake.info()
 # %% 
 time_format = "%m/%d/%Y %H:%M:%S"
 tracer_timezone = pytz.timezone('US/Central')
-epoch_start = time_str_to_epoch('07/01/2022 00:00:00', time_format, 'US/Central')
-epoch_end = time_str_to_epoch('07/28/2022 00:00:00', time_format, 'US/Central')
-# datalake.reaverage_datastreams(600, epoch_start=epoch_start, epoch_end=epoch_end)
-# epoch_start = datetime.fromisoformat('2022-06-30T19:00').timestamp()
-# epoch_end = datetime.fromisoformat('2022-08-01T05:00').timestamp()
 
-
-datalake.info()
-
-
-
-# %% average
 
 datalake.remove_outliers(
     datastreams_keys=['merged_mean_properties', 'smps_mean_properties'],
-    outlier_headers=['Unit_Mass_(ugPm3)_PM10', 'Unit_Mass_(ugPm3)_PM2.5'],
+    outlier_headers=['Unit_Mass_(ug/m3)_PM10', 'Unit_Mass_(ug/m3)_PM2.5'],
     mask_top=200,
     mask_bottom=0
 )
 
+# %%
+
+
+
+
+
+# %%
 
 epoch_start = time_str_to_epoch('07/12/2022 00:00:00', time_format, 'US/Central')
 epoch_end = time_str_to_epoch('07/25/2022 00:00:00', time_format, 'US/Central')
-datalake.reaverage_datastreams(3600, epoch_start=epoch_start, epoch_end=epoch_end)
+datalake.reaverage_datastreams(3600*2, epoch_start=epoch_start, epoch_end=epoch_end)
 
+# %%
+save_fig_path = os.path.join(path, "plots")
+colors = {
+    "sulfate": '#E5372C',
+    "nitrate": '#2E569E',
+    "ammonium": '#F2B42F',
+    "chloride": '#BD3D90',
+    "organic": '#0E964C',
+    "CAPS_wet": '#00A499',
+    "CAPS_dry": '#F15A24',
+    "gray_dark": '#333333',
+    "gray_light": '#666666',
+    "kappa_ccn": '#662D91',
+    "kappa_amsCCN": '#D6562B',
+    "kappa_amsHGF": '#F09B36',
+    "dust": '#754C24',
+    "PM1": '#00A499',
+    "PM10": '#F15A24',
+    "AOD_laport": '#333333',
+    "AOD_puerto_rico": '#666666',
+
+}
 
 # %%
 fig, ax = plt.subplots()
@@ -77,23 +91,24 @@ plot.timeseries(
     ax,
     datalake,
     'merged_mean_properties',
-    'Unit_Mass_(ugPm3)_PM10',
+    'Mass_(ug/m3)_PM10',
     'PM10',
-    shade=True)
+    shade=False)
+plot.timeseries(
+    ax,
+    datalake,
+    "aos_aps_mean_properties",
+    "Mass_(ug/m3)_PM10",
+    "aos PM10",
+    shade=False,
+)
 plot.timeseries(
     ax,
     datalake,
     'merged_mean_properties',
-    'Unit_Mass_(ugm3)_PM1',
-    'PM2.5',
-    shade=True)
-plot.timeseries(
-    ax,
-    datalake,
-    'smps_mean_properties',
-    'Unit_Mass_(ug/m3)',
-    'SMPS 800 nm',
-    shade=True)
+    'Mass_(ug/m3)_PM1',
+    'PM1',
+    shade=False)
 plt.tick_params(rotation=-35)
 
 ax2 = ax.twinx()
@@ -105,17 +120,19 @@ plot.timeseries(
     'AOD',
     shade=False,
     color='black')
-
+ax2.set_ylabel('AOD (500 nm)')
+ax2.set_ylim(bottom=0, top=1)
 ax.minorticks_on()
 
-ax.set_ylabel('PM10 Unit Mass ($\mu g/m^3$)')
+ax.set_ylabel('PM Mass ($\mu g/m^3$)')
 # ax.set_xlim((epoch_start, epoch_end))
 ax.xaxis.set_major_formatter(dates.DateFormatter('%m/%d', tz=tracer_timezone))
 # ax.xaxis.set_minor_formatter(dates.DateFormatter('%d'))
-ax.set_ylim(bottom=0, top=80)
+ax.set_ylim(bottom=0, top=150)
 ax.grid()
-ax.legend()
+# ax.legend()
 # ax2.legend()
+
 
 # %% 
 

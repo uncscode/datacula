@@ -63,12 +63,24 @@ datalake = processer.merge_smps_ops_datastreams(
     upper_key='aps_2D',
     new_key='merged_size_dist',
 )
+datalake = processer.merge_smps_ops_datastreams(
+    datalake=datalake,
+    lower_key='smps_2D',
+    upper_key='aos_aps_2D',
+    new_key='aos_merged_size_dist',
+)
 
 #%%
 datalake = processer.sizer_mean_properties(
     datalake=datalake,
     stream_key='merged_size_dist',
     new_key='merged_mean_properties',
+    diameter_multiplier_to_nm=1,
+)
+datalake = processer.sizer_mean_properties(
+    datalake=datalake,
+    stream_key='aos_merged_size_dist',
+    new_key='aos_merged_mean_properties',
     diameter_multiplier_to_nm=1,
 )
 datalake = processer.sizer_mean_properties(
