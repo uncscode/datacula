@@ -49,7 +49,8 @@ path = "D:\\Tracer\\working_folder\\raw_data"
 # settings = get_server_data_settings()
 
 #%%
-keys_subset = ["SP2_data",
+keys_subset = ["aeronet_PuertoRico",
+               "SP2_data",
                "SPAMS_data",
                "CAPS_data",
                "SMPS_data",
@@ -75,8 +76,7 @@ datalake.update_datastream()
 loader.save_datalake(path=path, data_lake=datalake, sufix_name='full_raw')
 
 datalake.info()
-# datalake.remove_zeros()
-
+print('Done')
 
 # %% 
 time_format = "%m/%d/%Y %H:%M:%S"
