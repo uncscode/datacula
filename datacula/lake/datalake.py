@@ -99,6 +99,7 @@ class DataLake():
         Returns:
         ----------
             None.
+        todo: add option for specific datastreams
         """
         for datastreams in self.list_datastreams():
             print('datastreams: ', datastreams)

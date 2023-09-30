@@ -20,6 +20,7 @@ import copy
 
 # preferred settings for plotting
 base_color = TAILWIND['gray']['700']
+grid_color = TAILWIND['gray']['300']
 plt.rcParams.update({'text.color': base_color,
                      'axes.labelcolor': base_color,
                      "figure.figsize": (6,4),
@@ -29,7 +30,8 @@ plt.rcParams.update({'text.color': base_color,
                      "xtick.color": base_color,
                      "ytick.color": base_color,
                      "pdf.fonttype": 42,
-                     "ps.fonttype": 42})
+                     "ps.fonttype": 42,
+                     "grid.color": grid_color})
 
 
 # %%
@@ -37,7 +39,7 @@ path = "D:\\Tracer\\working_folder\\raw_data"
 
 datalake = loader.load_datalake(path=path, sufix_name='processed')
 
-datalake.info()
+datalake.info(header_print_count=10, limit_header_print=True)
 # datalake.remove_zeros()
 
 time_format = "%m/%d/%Y %H:%M"
@@ -50,101 +52,11 @@ datalake.reaverage_datastreams(3600*2, epoch_start=epoch_start, epoch_end=epoch_
 
 # %% 
 
-
-
-datalake.remove_outliers(
-    datastreams_keys=['merged_mean_properties', 'smps_mean_properties'],
-    outlier_headers=['Unit_Mass_(ug/m3)_PM10', 'Unit_Mass_(ug/m3)_PM2.5'],
-    mask_top=200,
-    mask_bottom=0
-)
-
-# %% ratios
-
-datalake.reaverage_datastreams(300)
-
-babs_wet = datalake.datastreams['CAPS_data'].return_data(keys=['Babs_wet_CAPS_450nm[1/Mm]'])[0]
-babs_dry = datalake.datastreams['CAPS_data'].return_data(keys=['Babs_dry_CAPS_450nm[1/Mm]'])[0]
-ratio_babs_wet_dry = babs_wet / babs_dry
-
-bsca_wet = datalake.datastreams['CAPS_data'].return_data(keys=['Bsca_wet_CAPS_450nm[1/Mm]'])[0]
-bsca_dry = datalake.datastreams['CAPS_data'].return_data(keys=['Bsca_dry_CAPS_450nm[1/Mm]'])[0]
-ratio_bsca_wet_dry = bsca_wet / bsca_dry
-
-bext_wet = datalake.datastreams['CAPS_data'].return_data(keys=['Bext_wet_CAPS_450nm[1/Mm]'])[0]
-bext_dry = datalake.datastreams['CAPS_data'].return_data(keys=['Bext_dry_CAPS_450nm[1/Mm]'])[0]
-ratio_bext_wet_dry= bext_wet / bext_dry
-
-albedo_ratio = datalake.datastreams['CAPS_data'].return_data(keys=['SSA_wet_CAPS_450nm[1/Mm]'])[0] / datalake.datastreams['CAPS_data'].return_data(keys=['SSA_dry_CAPS_450nm[1/Mm]'])[0]
-
-neph_bsca_wet = datalake.datastreams['arm_neph_wet'].return_data(keys=['Bsca450nm_[1/Mm]'])[0]
-neph_bsca_dry = datalake.datastreams['arm_neph_dry'].return_data(keys=['Bsca450nm_[1/Mm]'])[0]
-ratio_neph_bsca_wet_dry = neph_bsca_wet / neph_bsca_dry
-
-# mass ratio
-
-inorganic_mass = datalake.datastreams['spams'].return_data(keys=['mass_Chl[ug/m3]', 'mass_NH4[ug/m3]', 'mass_SO4[ug/m3]', 'mass_NO3[ug/m3]'])
-inorganic_mass = np.nansum(inorganic_mass, axis=0)
-
-organic_mass = datalake.datastreams['spams'].return_data(keys=['mass_OC[ug/m3]'])[0]
-bc_mass = datalake.datastreams['sp2'].return_data(keys=['BC_mass[ug/m3]'])[0]
-
-pm1_mass = datalake.datastreams['smps_mean_properties'].return_data(keys=['Mass_(ug/m3)_PM1'])[0]
-
-remainder_mass = pm1_mass - inorganic_mass - organic_mass - bc_mass
-
-inorganic_mass_fraction = inorganic_mass / pm1_mass
-organic_mass_fraction = organic_mass / pm1_mass
-bc_mass_fraction = bc_mass / pm1_mass
-remainder_mass_fraction = remainder_mass / pm1_mass
-
-inorganic_bc_mass_ratio = inorganic_mass / bc_mass
-bc_remainder_mass_ratio = bc_mass / remainder_mass
-
-# save as new datastream
-time = datalake.datastreams['CAPS_data'].return_time(datetime64=False)
-# combine the data for datalake
-combinded = np.vstack((
-    ratio_babs_wet_dry,
-    ratio_bsca_wet_dry,
-    ratio_bext_wet_dry,
-    albedo_ratio,
-    ratio_neph_bsca_wet_dry,
-    inorganic_mass_fraction,
-    organic_mass_fraction,
-    bc_mass_fraction,
-    remainder_mass_fraction,
-    inorganic_bc_mass_ratio,
-    bc_remainder_mass_ratio,
-))
-header = [
-    "ratio_babs_wet_dry",
-    "ratio_bsca_wet_dry",
-    "ratio_bext_wet_dry",
-    "albedo_ratio",
-    "ratio_neph_bsca_wet_dry",
-    "inorganic_mass_fraction",
-    "organic_mass_fraction",
-    "bc_mass_fraction",
-    "remainder_mass_fraction",
-    "inorganic_bc_mass_ratio",
-    "bc_remainder_mass_ratio",
-]
-
-datalake.add_processed_datastream(
-    key='ratios',
-    time_stream=time,
-    data_stream=combinded,
-    data_stream_header=header,
-    average_times=datalake.datastreams['CAPS_data'].average_int_sec,
-    average_base=datalake.datastreams['CAPS_data'].average_base_sec,
-)
-
 datalake_dust1 = copy.deepcopy(datalake)
 datalake_dust2 = copy.deepcopy(datalake)
 datalake_fire = copy.deepcopy(datalake)
-# %%
-datalake.reaverage_datastreams(3600*2)
+# %% time slices
+datalake.reaverage_datastreams(3600*4)
 
 epoch_start_dust1 = time_str_to_epoch('07/16/2022 15:00', time_format, 'US/Central')
 epoch_end_dust1 = time_str_to_epoch('07/18/2022 22:00', time_format, 'US/Central')
@@ -166,15 +78,15 @@ colors = {
     "ammonium": '#F2B42F',
     "chloride": '#BD3D90',
     "organic": '#0E964C',
-    "CAPS_wet": TAILWIND['sky']['400'],
-    "CAPS_dry": TAILWIND['blue']['800'],
+    "CAPS_wet": TAILWIND['blue']['800'],
+    "CAPS_dry": TAILWIND['sky']['400'],
     "gray_dark": '#333333',
-    "gray_light": '#666666',
+    "gray_light": TAILWIND['gray']['300'],
     "kappa_ccn": '#662D91',
     "kappa_amsCCN": '#D6562B',
     "kappa_amsHGF": '#F09B36',
-    "dust1": TAILWIND['yellow']['800'],
-    "dust2": TAILWIND['yellow']['500'],
+    "dust1": TAILWIND['yellow']['400'],
+    "dust2": TAILWIND['yellow']['800'],
     "fire": TAILWIND['red']['500'],
     "PM1": TAILWIND['stone']['400'],
     "PM10": TAILWIND['stone']['700'],
@@ -224,8 +136,8 @@ ax2 = ax.twinx()
 plot.timeseries(
     ax2,
     datalake,
-    'CAPS_data',
-    'Bext_wet_CAPS_450nm[1/Mm]',
+    'arm_aeronet_sda',
+    'total_aod_500nm[tau]',
     'AOD',
     shade=False,
     color=colors['AOD_laport'],
@@ -233,13 +145,12 @@ plot.timeseries(
                  'marker': 'o',
                  'markersize': 4,
                  'markerfacecolor': colors['AOD_laport']})
-ax2.set_ylabel('AOD (500 nm)')
+ax2.set_ylabel('Aerosol Optical Depth (500 nm)', color=colors['AOD_laport'])
 ax2.set_ylim(bottom=0, top=1)
-ax2.set_ycolor(colors['AOD_laport'])
-
+ax2.tick_params(axis='y', labelcolor=colors['AOD_laport'], color=colors['AOD_laport'])
+ax2.spines['right'].set_color(colors['AOD_laport'])
 
 ax.minorticks_on()
-
 ax.set_ylabel('PM Mass ($\mu g/m^3$)')
 ax.xaxis.set_major_locator(dates.DayLocator(interval=2, tz=tracer_timezone))
 ax.xaxis.set_major_formatter(dates.DateFormatter('%d', tz=tracer_timezone))
@@ -253,49 +164,74 @@ fig.figure.savefig(save_fig_path+'\\'+'PM_mass.pdf', dpi=300)
 
 # %% time series optical properties
 
-fig, ax = plt.subplots()
+fig, ax = plt.subplots(nrows=2, ncols=1, sharex=True, figsize=(6,8))
+ax[0].grid()
+ax[1].grid()
+
 plot.timeseries(
-    ax,
+    ax[0],
     datalake,
     'CAPS_data',
     'Babs_wet_CAPS_450nm[1/Mm]',
     'Babs wet',
     color=colors['CAPS_wet'],
-    shade=False)
+    shade=True)
 plot.timeseries(
-    ax,
+    ax[0],
     datalake,
     'CAPS_data',
     'Babs_dry_CAPS_450nm[1/Mm]',
     'Babs dry',
     color=colors['CAPS_dry'],
+    shade=False)
+ax[0].set_ylabel('Absorption (450 nm) [1/Mm]')
+ax[0].set_ylim(bottom=0, top=15)
+ax[0].set_xlim((timeseries_left, timeseries_right))
+ax[0].xaxis.set_major_locator(dates.DayLocator(interval=2, tz=tracer_timezone))
+# ax[0].xaxis.set_major_formatter(dates.DateFormatter('%d', tz=tracer_timezone))
+
+plot.timeseries(
+    ax[1],
+    datalake,
+    'CAPS_data',
+    'SSA_wet_CAPS_450nm[1/Mm]',
+    'Bsca wet',
+    color=colors['CAPS_wet'],
     shade=True)
+plot.timeseries(
+    ax[1],
+    datalake,
+    'CAPS_data',
+    'SSA_dry_CAPS_450nm[1/Mm]',
+    'Bsca dry',
+    color=colors['CAPS_dry'],
+    shade=False)
+ax[1].set_ylabel('Single Scattering Albedo (450 nm)')
+ax[1].set_ylim(bottom=0.8, top=1.02)
 
-# ax2.set_ylabel('remainder mass fraction')
-# ax2.set_ylim(bottom=0, top=1)
+# ax[1].set_xlim((timeseries_left, timeseries_right))
+ax[1].xaxis.set_major_locator(dates.DayLocator(interval=2, tz=tracer_timezone))
+ax[1].xaxis.set_major_formatter(dates.DateFormatter('%d', tz=tracer_timezone))
+ax[1].set_xlabel('July Day 2022 (CDT)')
 
-ax.set_ylabel('Absorption (450 nm) [1/Mm]')
-ax.set_xlim((timeseries_left, timeseries_right))
-ax.xaxis.set_major_locator(dates.DayLocator(interval=2, tz=tracer_timezone))
-ax.xaxis.set_major_formatter(dates.DateFormatter('%d', tz=tracer_timezone))
-ax.set_xlabel('July Day 2022 (CDT)')
-ax.set_ylim(bottom=0, top=30)
-ax.grid()
-ax.legend()
+
+# ax.legend()
 fig.tight_layout()
-fig.figure.savefig(save_fig_path+'\\'+'Bsca.pdf', dpi=300)
+fig.figure.savefig(save_fig_path+'\\'+'Babs.pdf', dpi=300)
 
 
 
-# %% 
-datalake.reaverage_datastreams(300, stream_keys=['ratios'])
-datalake_dust1.reaverage_datastreams(300, stream_keys=['ratios'])
-datalake_dust2.reaverage_datastreams(300, stream_keys=['ratios'])
-datalake_fire.reaverage_datastreams(300, stream_keys=['ratios'])
+# %% absorption ratio hitogram
+interval_hist_average = 300
+datalake.reaverage_datastreams(interval_hist_average, stream_keys=['ratios'])
+datalake_dust1.reaverage_datastreams(interval_hist_average, stream_keys=['ratios'])
+datalake_dust2.reaverage_datastreams(interval_hist_average, stream_keys=['ratios'])
+datalake_fire.reaverage_datastreams(interval_hist_average, stream_keys=['ratios'])
 
-range = (0.2, 2.5)
-bins = 50
+range = (0.6, 2.5)
+bins = 30
 fig, ax = plt.subplots()
+
 plot.histogram(
     ax,
     datalake_dust1,
@@ -304,7 +240,9 @@ plot.histogram(
     'Dust 17th',
     bins=bins,
     range=range,
-    kwargs={'alpha': 0.5}
+    color=colors['dust1'],
+    kwargs={'alpha': 0.6,
+            'density': True}
 )
 plot.histogram(
     ax,
@@ -314,7 +252,9 @@ plot.histogram(
     'Dust 21st',
     bins=bins,
     range=range,
-    kwargs={'alpha': 0.5}
+    color=colors['dust2'],
+    kwargs={'alpha': 0.75,
+            'density': True}
 )
 plot.histogram(
     ax,
@@ -324,85 +264,333 @@ plot.histogram(
     'Combustion 12th',
     bins=bins,
     range=range,
-    kwargs={'alpha': 0.5}
+    color=colors['fire'],
+    kwargs={'alpha': 0.6,
+            'density': True}
+)
+plot.histogram(
+    ax,
+    datalake,
+    'ratios',
+    'ratio_babs_wet_dry',
+    'All',
+    bins=bins,
+    range=range,
+    color=colors['gray_light'],
+    kwargs={'alpha': 0.7,
+            'density': True}
 )
 ax.set_xlabel('Absorption Ratio (RH 84% / RH 54%) [1/Mm]')
-ax.set_ylabel('Occurance')
-ax.grid()
+ax.set_ylabel('Probability Density')
+# ax.grid()
+fig.tight_layout()
 fig.savefig(save_fig_path+'\\'+'absorption_ratio.pdf', dpi=300)
 
-# %%
+#%% albdeo ratio hitogram
+range = (0.94, 1.08)
+bins = 30
 fig, ax = plt.subplots()
-ax.hist(albedo_ratio, bins=50, range=(0.9, 1.1), alpha=1, label='Albedo', color=colors['gray_light'])
-ax.set_xlabel('SSA Ratio (RH 84% / RH 54%)')
-ax.set_ylabel('Occurance')
-ax.grid()
-fig.savefig(save_fig_path+'\\'+'SSA_enhancement.pdf', dpi=300)
 
-# %%
+plot.histogram(
+    ax,
+    datalake_dust1,
+    'ratios',
+    'albedo_ratio',
+    'Dust 17th',
+    bins=bins,
+    range=range,
+    color=colors['dust1'],
+    kwargs={'alpha': 0.6,
+            'density': True}
+)
+plot.histogram(
+    ax,
+    datalake_dust2,
+    'ratios',
+    'albedo_ratio',
+    'Dust 21st',
+    bins=bins,
+    range=range,
+    color=colors['dust2'],
+    kwargs={'alpha': 0.75,
+            'density': True}
+)
+plot.histogram(
+    ax,
+    datalake_fire,
+    'ratios',
+    'albedo_ratio',
+    'Combustion 12th',
+    bins=bins,
+    range=range,
+    color=colors['fire'],
+    kwargs={'alpha': 0.6,
+            'density': True}
+)
+plot.histogram(
+    ax,
+    datalake,
+    'ratios',
+    'albedo_ratio',
+    'All',
+    bins=bins,
+    range=range,
+    color=colors['gray_light'],
+    kwargs={'alpha': 0.7,
+            'density': True}
+)
+ax.set_xlabel('Albedo Ratio (RH 84% / RH 54%) [1/Mm]')
+ax.set_ylabel('Probability Density')
+# ax.grid()
+fig.tight_layout()
+fig.savefig(save_fig_path+'\\'+'albedo_ratio.pdf', dpi=300)
+
+# %% hgf kappa histogram 
+
+range = (0.0, 0.6)
+bins = 30
 fig, ax = plt.subplots()
-ax.plot(
-    datalake.datastreams['CAPS_data'].return_time(datetime64=True),
-    datalake.datastreams['CAPS_data'].return_data(keys=['Bext_wet_CAPS_450nm[1/Mm]'])[0],
-    label='Extinction wet'
+
+plot.histogram(
+    ax,
+    datalake_dust1,
+    'CAPS_data',
+    'kappa_fit',
+    'Dust 17th',
+    bins=bins,
+    range=range,
+    color=colors['dust1'],
+    kwargs={'alpha': 0.6,
+            'density': True}
 )
-ax.plot(
-    datalake.datastreams['CAPS_data'].return_time(datetime64=True),
-    datalake.datastreams['CAPS_data'].return_data(keys=['Bext_dry_CAPS_450nm[1/Mm]'])[0],
-    label='Extinction dry'
+plot.histogram(
+    ax,
+    datalake_dust2,
+    'CAPS_data',
+    'kappa_fit',
+    'Dust 21st',
+    bins=bins,
+    range=range,
+    color=colors['dust2'],
+    kwargs={'alpha': 0.75,
+            'density': True}
 )
-# ax.plot(
-#     datalake.datastreams['CAPS_data'].return_time(datetime64=True),
-#     datalake.datastreams['CAPS_data'].return_data(keys=['Bsca_wet_CAPS_450nm[1/Mm]'])[0],
-#     label='Scattering wet'
+plot.histogram(
+    ax,
+    datalake_fire,
+    'CAPS_data',
+    'kappa_fit',
+    'Combustion 12th',
+    bins=bins,
+    range=range,
+    color=colors['fire'],
+    kwargs={'alpha': 0.6,
+            'density': True}
+)
+plot.histogram(
+    ax,
+    datalake,
+    'CAPS_data',
+    'kappa_fit',
+    'All',
+    bins=bins,
+    range=range,
+    color=colors['gray_light'],
+    kwargs={'alpha': 0.7,
+            'density': True}
+)
+ax.set_xlabel('Hygroscopic Parameter $\kappa_{HGF}$')
+ax.set_ylabel('Probability Density')
+# ax.grid()
+fig.tight_layout()
+fig.savefig(save_fig_path+'\\'+'kappa_hist.pdf', dpi=300)
+
+
+# %% inorganic mass fraction histogram
+
+range = (0, .03)
+bins = 30
+key_name = 'bc_mass_fraction'
+fig, ax = plt.subplots()
+
+plot.histogram(
+    ax,
+    datalake_dust1,
+    'ratios',
+    key_name,
+    'Dust 17th',
+    bins=bins,
+    range=range,
+    color=colors['dust1'],
+    kwargs={'alpha': 0.6,
+            'density': True}
+)
+plot.histogram(
+    ax,
+    datalake_dust2,
+    'ratios',
+    key_name,
+    'Dust 21st',
+    bins=bins,
+    range=range,
+    color=colors['dust2'],
+    kwargs={'alpha': 0.75,
+            'density': True}
+)
+plot.histogram(
+    ax,
+    datalake_fire,
+    'ratios',
+    key_name,
+    'Combustion 12th',
+    bins=bins,
+    range=range,
+    color=colors['fire'],
+    kwargs={'alpha': 0.6,
+            'density': True}
+)
+plot.histogram(
+    ax,
+    datalake,
+    'ratios',
+    key_name,
+    'All',
+    bins=bins,
+    range=range,
+    color=colors['gray_light'],
+    kwargs={'alpha': 0.5,
+            'density': True}
+)
+ax.set_xlabel('$BC/PM_{1}$ Mass Fraction')
+ax.set_ylabel('Probability Density')
+# ax.grid()
+fig.tight_layout()
+fig.savefig(save_fig_path+'\\'+'bc_fraction_hist.pdf', dpi=300)
+
+
+# %% inorganic mass fraction histogram
+
+
+range = (0.1, 0.5)
+bins = 30
+key_name = 'inorganic_mass_fraction'
+fig, ax = plt.subplots()
+
+plot.histogram(
+    ax,
+    datalake_dust1,
+    'ratios',
+    key_name,
+    'Dust 17th',
+    bins=bins,
+    range=range,
+    color=colors['dust1'],
+    kwargs={'alpha': 0.6,
+            'density': True}
+)
+plot.histogram(
+    ax,
+    datalake_dust2,
+    'ratios',
+    key_name,
+    'Dust 21st',
+    bins=bins,
+    range=range,
+    color=colors['dust2'],
+    kwargs={'alpha': 0.65,
+            'density': True}
+)
+plot.histogram(
+    ax,
+    datalake_fire,
+    'ratios',
+    key_name,
+    'Combustion 12th',
+    bins=bins,
+    range=range,
+    color=colors['fire'],
+    kwargs={'alpha': 0.6,
+            'density': True}
+)
+plot.histogram(
+    ax,
+    datalake,
+    'ratios',
+    key_name,
+    'All',
+    bins=bins,
+    range=range,
+    color=colors['gray_light'],
+    kwargs={'alpha': 0.2,
+            'density': True}
+)
+ax.set_xlabel('Inorganic/$PM{1}$ Mass Fraction')
+ax.set_ylabel('Probability Density')
+# ax.grid()
+fig.tight_layout()
+fig.savefig(save_fig_path+'\\'+'inorganic_hist.pdf', dpi=300)
+
+
+# %% mass remaining fraction histogram
+
+range = (0.5, 0.9)
+bins = 30
+key_name = 'remainder_mass_fraction'
+fig, ax = plt.subplots()
+
+plot.histogram(
+    ax,
+    datalake_dust1,
+    'ratios',
+    key_name,
+    'Dust 17th',
+    bins=bins,
+    range=range,
+    color=colors['dust1'],
+    kwargs={'alpha': 0.7,
+            'density': True}
+)
+plot.histogram(
+    ax,
+    datalake_dust2,
+    'ratios',
+    key_name,
+    'Dust 21st',
+    bins=bins,
+    range=range,
+    color=colors['dust2'],
+    kwargs={'alpha': 0.65,
+            'density': True}
+)
+plot.histogram(
+    ax,
+    datalake_fire,
+    'ratios',
+    key_name,
+    'Combustion 12th',
+    bins=bins,
+    range=range,
+    color=colors['fire'],
+    kwargs={'alpha': 0.6,
+            'density': True}
+)
+# plot.histogram(
+#     ax,
+#     datalake,
+#     'ratios',
+#     key_name,
+#     'All',
+#     bins=bins,
+#     range=range,
+#     color=colors['gray_light'],
+#     kwargs={'alpha': 0.2,
+#             'density': True}
 # )
-# ax.plot(
-#     datalake.datastreams['CAPS_data'].return_time(datetime64=True),
-#     datalake.datastreams['CAPS_data'].return_data(keys=['Bsca_dry_CAPS_450nm[1/Mm]'])[0],
-#     label='Scattering dry'
-# )
-ax.set_ylim(0,200)
-plt.tick_params(rotation=-35)
-ax.set_ylabel('Extinction or Scattering [1/Mm]')
-ax.xaxis.set_major_formatter(dates.DateFormatter('%m/%d'), tz=tracer_timezone)
-ax.legend()
-fig.savefig(save_fig_path+'\\'+'CAPS_data.png', dpi=300)
-
-# %%
-
-fig, ax = plt.subplots()
-ax.plot(
-    datalake.datastreams['CAPS_data'].return_time(datetime64=True),
-    datalake.datastreams['CAPS_data'].return_data(keys=['SSA_wet_CAPS_450nm[1/Mm]'])[0],
-    label='wet'
-)
-ax.plot(
-    datalake.datastreams['CAPS_data'].return_time(datetime64=True),
-    datalake.datastreams['CAPS_data'].return_data(keys=['SSA_dry_CAPS_450nm[1/Mm]'])[0],
-    label='dry'
-)
-plt.tick_params(rotation=-35)
-ax.set_ylabel('Single Scattering Albedo')
-ax.xaxis.set_major_formatter(dates.DateFormatter('%m/%d'))
-ax.set_ylim(0.8,1.1)
-ax.legend()
-fig.savefig(save_fig_path+'\\'+'CAPS_data_SSA.png', dpi=300)
-
-print('wet mean: ', np.nanmean(datalake.datastreams['CAPS_data'].return_data(keys=['SSA_wet_CAPS_450nm[1/Mm]'])[0]))
-print('dry mean: ', np.nanmean(datalake.datastreams['CAPS_data'].return_data(keys=['SSA_dry_CAPS_450nm[1/Mm]'])[0]))
+ax.set_xlabel('Unaccounted for Mass / $PM{1}$ Mass Fraction')
+ax.set_ylabel('Probability Density')
+# ax.grid()
+fig.tight_layout()
+fig.savefig(save_fig_path+'\\'+'remainder_hist.pdf', dpi=300)
 
 
 # %%
-datalake.reaverage_datalake(60*10)
-
-# PASS
-pass_save_keys = ['Bsca405nm[1/Mm]', 'Bsca532nm[1/Mm]', 'Bsca781nm[1/Mm]']
-# datastream_to_csv(datalake.datastreams['pass3'], path, header_keys=pass_save_keys, time_shift_sec=0, filename='PASS3_CDT')
-# datastream_to_csv(datalake.datastreams['pass3'], path, header_keys=pass_save_keys, time_shift_sec=-3600, filename='PASS3_CST')
-
-# # CDT
-# datalake_to_csv(datalake=datalake, path=path, time_shift_sec=0, sufix_name='CDT')
-# # CST
-# datalake_to_csv(datalake=datalake, path=path, time_shift_sec=-3600, sufix_name='CST')
-# %%
-
