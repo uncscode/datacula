@@ -74,7 +74,7 @@ datalake_dust1 = copy.deepcopy(datalake)
 datalake_dust2 = copy.deepcopy(datalake)
 datalake_fire = copy.deepcopy(datalake)
 # %% time slices
-datalake.reaverage_datastreams(3600*4)
+datalake.reaverage_datastreams(3600*2)
 
 epoch_start_dust1 = time_str_to_epoch('07/16/2022 15:00', time_format, 'US/Central')
 epoch_end_dust1 = time_str_to_epoch('07/18/2022 22:00', time_format, 'US/Central')
@@ -84,14 +84,14 @@ epoch_start_dust2 = time_str_to_epoch('07/20/2022 12:00', time_format, 'US/Centr
 epoch_end_dust2 = time_str_to_epoch('07/22/2022 18:00', time_format, 'US/Central')
 datalake_dust2.reaverage_datastreams(300, epoch_start=epoch_start_dust2, epoch_end=epoch_end_dust2)
 
-epoch_start_fire = time_str_to_epoch('07/12/2022 12:00', time_format, 'US/Central')
-epoch_end_fire = time_str_to_epoch('07/13/2022 6:00', time_format, 'US/Central')
+epoch_start_fire = time_str_to_epoch('07/11/2022 12:00', time_format, 'US/Central')
+epoch_end_fire = time_str_to_epoch('07/12/2022 0:00', time_format, 'US/Central')
 datalake_fire.reaverage_datastreams(300, epoch_start=epoch_start_fire, epoch_end=epoch_end_fire)
 
 # %%
 save_fig_path = os.path.join(path, "plots")
 colors = {
-    "sulfate": '#E5372C',
+    "sulfate": TAILWIND['red']['600'],
     "nitrate": '#2E569E',
     "ammonium": '#F2B42F',
     "chloride": '#BD3D90',
@@ -103,13 +103,14 @@ colors = {
     "kappa_ccn": '#662D91',
     "kappa_amsCCN": '#D6562B',
     "kappa_amsHGF": '#F09B36',
-    "dust1": TAILWIND['yellow']['400'],
-    "dust2": TAILWIND['yellow']['800'],
+    "dust1": TAILWIND['yellow']['800'],
+    "dust2": TAILWIND['yellow']['400'],
     "fire": TAILWIND['red']['500'],
     "PM1": TAILWIND['stone']['400'],
     "PM10": TAILWIND['stone']['700'],
     "AOD_laport": TAILWIND['violet']['400'],
     "AOD_puerto_rico": TAILWIND['violet']['700'],
+    "BC": TAILWIND['gray']['900'],
 }
 
 # timeseries_left = np.datetime64('07/11/2022 00:00', time_format)
@@ -117,9 +118,9 @@ colors = {
 # datetime64_from_epoch_array
 
 timeseries_left = convert.datetime64_from_epoch_array(
-    [time_str_to_epoch('07/10/2022 00:00', time_format, 'US/Central')])
+    [time_str_to_epoch('07/11/2022 00:00', time_format, 'US/Central')])
 timeseries_right = convert.datetime64_from_epoch_array(
-    [time_str_to_epoch('07/25/2022 00:00', time_format, 'US/Central')]
+    [time_str_to_epoch('07/13/2022 00:00', time_format, 'US/Central')]
 )
 # %% plot mass time series
 fig, ax = plt.subplots()
@@ -192,8 +193,68 @@ ax.grid()
 fig.tight_layout()
 fig.figure.savefig(save_fig_path+'\\'+'PM_mass.pdf', dpi=300)
 
+# %% plot ratio time series
+
+fig, ax = plt.subplots()
+plot.timeseries(
+    ax,
+    datalake,
+    "aos_merged_mean_properties",
+    "Mass_(ug/m3)_PM10",
+    "aos PM10",
+    color=colors['PM10'],
+    shade=False,
+)
+plot.timeseries(
+    ax,
+    datalake,
+    'aos_merged_mean_properties',
+    'Mass_(ug/m3)_PM1',
+    'PM1',
+    color=colors['PM1'],
+    shade=False)
+# plt.tick_params(rotation=-35)
+ax.set_xlim((timeseries_left, timeseries_right))
+ax2 = ax.twinx()
+plot.timeseries(
+    ax2,
+    datalake,
+    "sp2",
+    "BC_mass[ug/m3]",
+    "bc mass",
+    color=colors['BC'],
+    shade=False,
+    line_kwargs={'linestyle': '--'}
+)
+# plot.timeseries(
+#     ax2,
+#     datalake,
+#     'ratios',
+#     'inorganic_mass_fraction',
+#     'inorganic mass fraction',
+#     color=colors['sulfate'],
+#     shade=False,
+#     line_kwargs={'linestyle': '--'})
+ax2.set_ylabel('Mass Fraction (1/$PM_{1}$)', color=colors['sulfate'])
+ax2.set_ylim(bottom=-.1, top=0.5)
+ax2.tick_params(axis='y', labelcolor=colors['sulfate'], color=colors['sulfate'])
+ax2.spines['right'].set_color(colors['sulfate'])
+# ax2.set_xlim((timeseries_left, timeseries_right))
+
+ax.minorticks_on()
+ax.set_ylabel('PM Mass ($\mu g/m^3$)')
+ax.xaxis.set_major_locator(dates.DayLocator(interval=1, tz=tracer_timezone))
+ax.xaxis.set_major_formatter(dates.DateFormatter('%d %H', tz=tracer_timezone))
+ax.set_xlabel('July Day 2022 (CDT)')
+ax.set_ylim(bottom=0, top=150)
+ax.grid()
+# ax.legend()
+# ax2.legend()
+fig.tight_layout()
+fig.figure.savefig(save_fig_path+'\\'+'PM1_ratios.pdf', dpi=300)
+
 # %% time series optical properties
-datalake.reaverage_datastreams(3600*4)
+datalake.reaverage_datastreams(3600*2)
 fig, ax = plt.subplots(nrows=2, ncols=1, sharex=True, figsize=(6,8))
 ax[0].grid()
 ax[1].grid()
@@ -240,6 +301,7 @@ ax[1].set_ylabel('Single Scattering Albedo (450 nm)')
 ax[1].set_ylim(bottom=0.8, top=1.05)
 
 # ax[1].set_xlim((timeseries_left, timeseries_right))
+ax[1].minorticks_on()
 ax[1].xaxis.set_major_locator(dates.DayLocator(interval=2, tz=tracer_timezone))
 ax[1].xaxis.set_major_formatter(dates.DateFormatter('%d', tz=tracer_timezone))
 ax[1].set_xlabel('July Day 2022 (CDT)')
@@ -622,5 +684,46 @@ ax.set_ylabel('Probability Density')
 fig.tight_layout()
 fig.savefig(save_fig_path+'\\'+'remainder_hist.pdf', dpi=300)
 
+
+# %% plot bc mass 
+
+fig, ax = plt.subplots()
+
+plot.timeseries(
+    ax,
+    datalake,
+    'sp2',
+    'BC_mass[ug/m3]',
+    'BC mass',
+    color=colors['BC'],
+    shade=False,
+    line_kwargs={'linestyle': '--'})
+ax.set_xlim((timeseries_left, timeseries_right))
+
+# ax2 = ax.twinx()
+# plot.timeseries(
+#     ax2,
+#     datalake,
+#     'spams',
+#     'mass_SO4[ug/m3]',
+#     'sulfate mass',
+#     color=colors['sulfate'],
+#     shade=False,
+# )
+# ax2.set_ylabel('Aerosol Optical Depth (500 nm)', color=colors['AOD_puerto_rico'])
+# # ax2.set_ylim(bottom=0, top=1)
+# ax2.tick_params(axis='y', labelcolor=colors['AOD_puerto_rico'], color=colors['AOD_puerto_rico'])
+# ax2.spines['right'].set_color(colors['AOD_puerto_rico'])
+
+ax.set_ylabel('BC Mass ($\mu g/m^3$)')
+# ax.set_ylim(bottom=0, top=0.5)
+# ax.set_xlim((timeseries_left, timeseries_right))
+ax.xaxis.set_major_locator(dates.DayLocator(interval=2, tz=tracer_timezone))
+ax.xaxis.set_major_formatter(dates.DateFormatter('%d', tz=tracer_timezone))
+ax.set_xlabel('July Day 2022 (CDT)')
+ax.grid()
+# ax.legend()
+fig.tight_layout()
+fig.savefig(save_fig_path+'\\'+'bc_mass.pdf', dpi=300)
 
 # %%
