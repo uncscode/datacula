@@ -37,7 +37,7 @@ plt.rcParams.update({'text.color': base_color,
 # %%
 path = "D:\\Tracer\\working_folder\\raw_data"
 
-datalake = loader.load_datalake(path=path, sufix_name='processed')
+datalake = loader.load_datalake(path=path, sufix_name='processed_final')
 datalake.remove_outliers(
     datastreams_keys=['merged_mean_properties',
                       'smps_mean_properties',
@@ -48,6 +48,15 @@ datalake.remove_outliers(
     mask_top=100,
     mask_bottom=0
 )
+datalake.remove_outliers(
+    datastreams_keys=['CAPS_data',
+                      'CAPS_data'],
+    outlier_headers=['SSA_dry_CAPS_450nm[1/Mm]',
+                     'SSA_wet_CAPS_450nm[1/Mm]'],
+    mask_top=1.1,
+    mask_bottom=0.75
+)
+
 datalake.info(header_print_count=10, limit_header_print=True)
 # datalake.remove_zeros()
 
@@ -157,7 +166,7 @@ plot.timeseries(
 plot.timeseries(
     ax2,
     datalake,
-    'aeronet_puerto_ric',
+    'aeronet_puerto_rico_shift4day',
     'total_aod_500nm[tau]',
     'AOD',
     shade=False,
@@ -166,10 +175,10 @@ plot.timeseries(
                  'marker': '^',
                  'markersize': 6,
                  'markerfacecolor': colors['AOD_puerto_rico']})
-ax2.set_ylabel('Aerosol Optical Depth (500 nm)', color=colors['AOD_laport'])
+ax2.set_ylabel('Aerosol Optical Depth (500 nm)', color=colors['AOD_puerto_rico'])
 ax2.set_ylim(bottom=0, top=1)
-ax2.tick_params(axis='y', labelcolor=colors['AOD_laport'], color=colors['AOD_laport'])
-ax2.spines['right'].set_color(colors['AOD_laport'])
+ax2.tick_params(axis='y', labelcolor=colors['AOD_puerto_rico'], color=colors['AOD_puerto_rico'])
+ax2.spines['right'].set_color(colors['AOD_puerto_rico'])
 
 ax.minorticks_on()
 ax.set_ylabel('PM Mass ($\mu g/m^3$)')
@@ -184,7 +193,7 @@ fig.tight_layout()
 fig.figure.savefig(save_fig_path+'\\'+'PM_mass.pdf', dpi=300)
 
 # %% time series optical properties
-
+datalake.reaverage_datastreams(3600*4)
 fig, ax = plt.subplots(nrows=2, ncols=1, sharex=True, figsize=(6,8))
 ax[0].grid()
 ax[1].grid()
@@ -228,7 +237,7 @@ plot.timeseries(
     color=colors['CAPS_dry'],
     shade=False)
 ax[1].set_ylabel('Single Scattering Albedo (450 nm)')
-ax[1].set_ylim(bottom=0.8, top=1.02)
+ax[1].set_ylim(bottom=0.8, top=1.05)
 
 # ax[1].set_xlim((timeseries_left, timeseries_right))
 ax[1].xaxis.set_major_locator(dates.DayLocator(interval=2, tz=tracer_timezone))
@@ -238,12 +247,12 @@ ax[1].set_xlabel('July Day 2022 (CDT)')
 
 # ax.legend()
 fig.tight_layout()
-fig.figure.savefig(save_fig_path+'\\'+'Babs.pdf', dpi=300)
+fig.figure.savefig(save_fig_path+'\\'+'Babs_ssa.pdf', dpi=300)
 
 
 
 # %% absorption ratio hitogram
-interval_hist_average = 300
+interval_hist_average = 600
 datalake.reaverage_datastreams(interval_hist_average, stream_keys=['ratios'])
 datalake_dust1.reaverage_datastreams(interval_hist_average, stream_keys=['ratios'])
 datalake_dust2.reaverage_datastreams(interval_hist_average, stream_keys=['ratios'])

@@ -67,7 +67,7 @@ datalake = processer.caps_processing(
     truncation_interval_sec=600,
     truncation_interp=True,
     refractive_index=1.5,
-    calibration_wet=0.955,
+    calibration_wet=0.95,
     calibration_dry=1.003
 )
 datalake.reaverage_datastreams(60)
@@ -76,7 +76,7 @@ datalake = processer.albedo_processing(datalake=datalake)
 loader.save_datalake(path=path, data_lake=datalake, sufix_name='processed_caps')
 
 #%%
-datalake.reaverage_datastreams(300, epoch_start=epoch_start, epoch_end=epoch_end)
+datalake.reaverage_datastreams(600, epoch_start=epoch_start, epoch_end=epoch_end)
 
 datalake = processer.merge_smps_ops_datastreams(
     datalake=datalake,
@@ -126,21 +126,32 @@ datalake = processer.sizer_mean_properties(
 
 # %% average
 
+
+
+
+# %% ratios
+
+datalake.reaverage_datastreams(600, epoch_start=epoch_start, epoch_end=epoch_end)
+
 datalake.remove_outliers(
     datastreams_keys=['merged_mean_properties',
                       'smps_mean_properties',
                       'aos_merged_mean_properties',],
     outlier_headers=['Unit_Mass_(ug/m3)_PM10',
-                     'Unit_Mass_(ug/m3)_PM2.5'
+                     'Unit_Mass_(ug/m3)_PM2.5',
                      'Unit_Mass_(ug/m3)_PM10',],
     mask_top=100,
     mask_bottom=0
 )
 
-
-# %% ratios
-
-datalake.reaverage_datastreams(300, epoch_start=epoch_start, epoch_end=epoch_end)
+datalake.remove_outliers(
+    datastreams_keys=['CAPS_data',
+                      'CAPS_data'],
+    outlier_headers=['SSA_dry_CAPS_450nm[1/Mm]',
+                     'SSA_wet_CAPS_450nm[1/Mm]'],
+    mask_top=1.1,
+    mask_bottom=0.75
+)
 
 babs_wet = datalake.datastreams['CAPS_data'].return_data(keys=['Babs_wet_CAPS_450nm[1/Mm]'])[0]
 babs_dry = datalake.datastreams['CAPS_data'].return_data(keys=['Babs_dry_CAPS_450nm[1/Mm]'])[0]
@@ -222,7 +233,7 @@ datalake.add_processed_datastream(
 
 # %% save
 
-loader.save_datalake(path=path, data_lake=datalake, sufix_name='processed')
+loader.save_datalake(path=path, data_lake=datalake, sufix_name='processed_final')
 
 print('done')
 # %%
