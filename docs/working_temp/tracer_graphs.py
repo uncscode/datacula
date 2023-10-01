@@ -45,7 +45,7 @@ datalake.remove_outliers(
     outlier_headers=['Unit_Mass_(ug/m3)_PM10',
                      'Unit_Mass_(ug/m3)_PM1',
                      'Unit_Mass_(ug/m3)_PM10',],
-    mask_top=100,
+    mask_top=150,
     mask_bottom=0
 )
 datalake.remove_outliers(
@@ -74,7 +74,7 @@ datalake_dust1 = copy.deepcopy(datalake)
 datalake_dust2 = copy.deepcopy(datalake)
 datalake_fire = copy.deepcopy(datalake)
 # %% time slices
-datalake.reaverage_datastreams(3600*2)
+datalake.reaverage_datastreams(3600*1)
 
 epoch_start_dust1 = time_str_to_epoch('07/16/2022 15:00', time_format, 'US/Central')
 epoch_end_dust1 = time_str_to_epoch('07/18/2022 22:00', time_format, 'US/Central')
@@ -118,9 +118,9 @@ colors = {
 # datetime64_from_epoch_array
 
 timeseries_left = convert.datetime64_from_epoch_array(
-    [time_str_to_epoch('07/11/2022 00:00', time_format, 'US/Central')])
+    [time_str_to_epoch('07/10/2022 00:00', time_format, 'US/Central')])
 timeseries_right = convert.datetime64_from_epoch_array(
-    [time_str_to_epoch('07/13/2022 00:00', time_format, 'US/Central')]
+    [time_str_to_epoch('07/25/2022 00:00', time_format, 'US/Central')]
 )
 # %% plot mass time series
 fig, ax = plt.subplots()
@@ -168,6 +168,18 @@ plot.timeseries(
     ax2,
     datalake,
     'aeronet_puerto_rico_shift4day',
+    'total_aod_500nm[tau]',
+    'AOD',
+    shade=False,
+    color=colors['AOD_puerto_rico'],
+    line_kwargs={'linestyle': '',
+                 'marker': '^',
+                 'markersize': 6,
+                 'markerfacecolor': colors['AOD_puerto_rico']})
+plot.timeseries(
+    ax2,
+    datalake,
+    'aeronet_puerto_rico',
     'total_aod_500nm[tau]',
     'AOD',
     shade=False,
@@ -235,23 +247,24 @@ plot.timeseries(
 #     color=colors['sulfate'],
 #     shade=False,
 #     line_kwargs={'linestyle': '--'})
-ax2.set_ylabel('Mass Fraction (1/$PM_{1}$)', color=colors['sulfate'])
-ax2.set_ylim(bottom=-.1, top=0.5)
-ax2.tick_params(axis='y', labelcolor=colors['sulfate'], color=colors['sulfate'])
-ax2.spines['right'].set_color(colors['sulfate'])
 # ax2.set_xlim((timeseries_left, timeseries_right))
+ax2.set_ylabel('BC Mass ($\mu g/m^3$)', color=colors['BC'])
+ax2.set_ylim(bottom=-.1, top=0.5)
+# ax2.tick_params(axis='y', labelcolor=colors['sulfate'], color=colors['sulfate'])
+# ax2.spines['right'].set_color(colors['sulfate'])
+
 
 ax.minorticks_on()
 ax.set_ylabel('PM Mass ($\mu g/m^3$)')
-ax.xaxis.set_major_locator(dates.DayLocator(interval=1, tz=tracer_timezone))
-ax.xaxis.set_major_formatter(dates.DateFormatter('%d %H', tz=tracer_timezone))
+ax.xaxis.set_major_locator(dates.DayLocator(interval=2, tz=tracer_timezone))
+ax.xaxis.set_major_formatter(dates.DateFormatter('%d', tz=tracer_timezone))
 ax.set_xlabel('July Day 2022 (CDT)')
 ax.set_ylim(bottom=0, top=150)
 ax.grid()
 # ax.legend()
 # ax2.legend()
 fig.tight_layout()
-fig.figure.savefig(save_fig_path+'\\'+'PM1_ratios.pdf', dpi=300)
+fig.figure.savefig(save_fig_path+'\\'+'PM1_BCmass.pdf', dpi=300)
 
 # %% time series optical properties
 datalake.reaverage_datastreams(3600*2)
@@ -369,8 +382,11 @@ plot.histogram(
     bins=bins,
     range=range,
     color=colors['gray_light'],
-    kwargs={'alpha': 0.7,
-            'density': True}
+    kwargs={'alpha': 1,
+            'density': True,
+            'fill': False,
+            'edgecolor': colors['gray_light'],
+            'linewidth': 2}
 )
 ax.set_xlabel('Absorption Ratio (RH 84% / RH 54%) [1/Mm]')
 ax.set_ylabel('Probability Density')
@@ -428,8 +444,11 @@ plot.histogram(
     bins=bins,
     range=range,
     color=colors['gray_light'],
-    kwargs={'alpha': 0.7,
-            'density': True}
+    kwargs={'alpha': 1,
+            'density': True,
+            'fill': False,
+            'edgecolor': colors['gray_light'],
+            'linewidth': 2}
 )
 ax.set_xlabel('Albedo Ratio (RH 84% / RH 54%) [1/Mm]')
 ax.set_ylabel('Probability Density')
@@ -488,8 +507,11 @@ plot.histogram(
     bins=bins,
     range=range,
     color=colors['gray_light'],
-    kwargs={'alpha': 0.7,
-            'density': True}
+    kwargs={'alpha': 1,
+            'density': True,
+            'fill': False,
+            'edgecolor': colors['gray_light'],
+            'linewidth': 2}
 )
 ax.set_xlabel('Hygroscopic Parameter $\kappa_{HGF}$')
 ax.set_ylabel('Probability Density')
@@ -550,8 +572,11 @@ plot.histogram(
     bins=bins,
     range=range,
     color=colors['gray_light'],
-    kwargs={'alpha': 0.5,
-            'density': True}
+    kwargs={'alpha': 1,
+            'density': True,
+            'fill': False,
+            'edgecolor': colors['gray_light'],
+            'linewidth': 2}
 )
 ax.set_xlabel('$BC/PM_{1}$ Mass Fraction')
 ax.set_ylabel('Probability Density')
@@ -604,18 +629,18 @@ plot.histogram(
     kwargs={'alpha': 0.6,
             'density': True}
 )
-plot.histogram(
-    ax,
-    datalake,
-    'ratios',
-    key_name,
-    'All',
-    bins=bins,
-    range=range,
-    color=colors['gray_light'],
-    kwargs={'alpha': 0.2,
-            'density': True}
-)
+# plot.histogram(
+#     ax,
+#     datalake,
+#     'ratios',
+#     key_name,
+#     'All',
+#     bins=bins,
+#     range=range,
+#     color=colors['gray_light'],
+#     kwargs={'alpha': 0.2,
+#             'density': True}
+# )
 ax.set_xlabel('Inorganic/$PM{1}$ Mass Fraction')
 ax.set_ylabel('Probability Density')
 # ax.grid()
@@ -666,18 +691,21 @@ plot.histogram(
     kwargs={'alpha': 0.6,
             'density': True}
 )
-# plot.histogram(
-#     ax,
-#     datalake,
-#     'ratios',
-#     key_name,
-#     'All',
-#     bins=bins,
-#     range=range,
-#     color=colors['gray_light'],
-#     kwargs={'alpha': 0.2,
-#             'density': True}
-# )
+plot.histogram(
+    ax,
+    datalake,
+    'ratios',
+    key_name,
+    'All',
+    bins=bins,
+    range=range,
+    color=colors['gray_light'],
+    kwargs={'alpha': 1,
+            'density': True,
+            'fill': False,
+            'edgecolor': colors['gray_light'],
+            'linewidth': 2}
+)
 ax.set_xlabel('Unaccounted for Mass / $PM{1}$ Mass Fraction')
 ax.set_ylabel('Probability Density')
 # ax.grid()
