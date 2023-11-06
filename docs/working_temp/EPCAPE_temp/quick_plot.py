@@ -60,10 +60,18 @@ settings = {
         "data_header": [
             "visibility",
             "Cloud_Sample",
+            "precp_stat",
+            "air_speed",
+            "Humidity_[%]",
+            "Temperature_[C]",
         ],
         "data_column": [
             2,
             3,
+            4,
+            5,
+            6,
+            7,
         ],
         "time_column": [0, 1],
         "time_format": "%y/%m/%d %H:%M:%S",
@@ -138,6 +146,29 @@ ax.grid()
 ax.legend()
 fig.tight_layout()
 fig.savefig(plot_path + '\\Cloud.png', dpi=300)
+
+fig, ax = plt.subplots()
+plot.timeseries(
+    ax,
+    my_lake,
+    'GCVI',
+    'Humidity_[%]',
+    label='GCVI',
+    shade=False)
+
+ax.minorticks_on()
+plt.tick_params(rotation=-25)
+ax.set_ylabel('Humidity (%)')
+# ax.set_xlim((epoch_start, epoch_end))
+ax.set_xlabel('UTC Time')
+
+ax.xaxis.set_major_formatter(dates.DateFormatter('%m/%d', tz=timezone))
+# ax.xaxis.set_minor_formatter(dates.DateFormatter('%d', tz=mdt_timezone))
+# ax.set_ylim((0,2000))
+ax.grid()
+ax.legend()
+fig.tight_layout()
+fig.savefig(plot_path + '\\GCVI_humidity.png', dpi=300)
 
 # %% plot smps 2d data
 

@@ -25,7 +25,7 @@ plt.rcParams.update({'text.color': "#333333",
                      "ps.fonttype": 42})
 
 #%%
-data_path = 'F:\\CloudChamber\\exp20230925'
+data_path = 'D:\\CloudChamber\\exp20230925'
 # make plots folder
 plot_path = os.path.join(data_path, 'plots')
 if not os.path.exists(plot_path):
@@ -92,9 +92,39 @@ settings = {
         "filename_regex": "*.csv",
         "base_interval_sec": 180,
         "data_delimiter": ","
-        }
-}
-
+        },
+    "CPC_3750_data": {
+        "instrument_name": "LANL_cpc",
+        "data_stream_name": "cpc",
+        "data_processing_function": "CPC_3750_data",
+        "data_loading_function": "general_load",
+        "relative_data_folder": "CPC_3750_data",
+        "last_file_processed": "",
+        "last_timestamp_processed": "",
+        "skipRowsDict": 0,
+        "Time_shift_sec": 0,
+        "timezone_identifier": "US/Central",
+        "data_checks": {
+            "characters": [20,150],
+            "skip_rows": 17,
+            "skip_end": 0,
+            "char_counts": {":": 2, "-":2}
+        },
+        "data_header": [
+            "cpc_concentration_[#/cc]",
+            "cpc_counts_[1/sec]"
+        ],
+        "data_column": [
+            2,
+            4
+        ],
+        "time_column": 0,
+        "time_format": "%Y-%m-%d %H:%M:%S",
+        "filename_regex": "*.csv",
+        "base_interval_sec": 1,
+        "data_delimiter": ","
+    }
+}   
 
 # Initialize the data lake
 my_lake = DataLake(settings=settings, path=data_path)
@@ -188,8 +218,38 @@ plt.show()
 fig.tight_layout()
 fig.savefig(plot_path + '\\smps_2d.png', dpi=300)
 
+# %%
+my_lake.reaverage_datastreams(60*10, epoch_start=epoch_start, epoch_end=epoch_end)
 
 
+
+fig, ax = plt.subplots()
+plot.timeseries(
+    ax,
+    my_lake,
+    'sizer_mean_properties',
+    'Total_Conc_(#/cc)',
+    label='Chamber'
+    )
+plot.timeseries(
+    ax,
+    my_lake,
+    'cpc',
+    'cpc_concentration_[#/cc]',
+    label='Room')
+
+ax.minorticks_on()
+plt.tick_params(rotation=-25)
+ax.set_ylabel('Particle Number (#/cm³)')
+# ax.set_xlim((epoch_start, epoch_end))
+
+ax.xaxis.set_major_formatter(dates.DateFormatter('%H:%M', tz=mdt_timezone))
+# ax.xaxis.set_minor_formatter(dates.DateFormatter('%d', tz=mdt_timezone))
+ax.set_ylim((0,20000))
+ax.grid()
+ax.legend()
+fig.tight_layout()
+fig.savefig(plot_path + '\\number_room.png', dpi=300)
 # %% plot decay rate for two selected bins
 
 
