@@ -84,19 +84,19 @@ class StreamAveraged(Stream):
         self.validate_averaging_params()
 
     def validate_averaging_params(self):
-            """
-            Validates the averaging parameters for the datastream.
+        """
+        Validates the averaging parameters for the datastream.
 
-            Raises:
-                ValueError: If average_window is not a positive number or if
-                start_time and stop_time are not numbers or if start_time is
-                greater than or equal to stop_time.
-            """
-            if not isinstance(self.average_window, (int, float)
-                              ) or self.average_window <= 0:
-                raise ValueError("average_window must be a positive number")
-            if not isinstance(self.start_time, (int, float)) or \
-                    not isinstance(self.stop_time, (int, float)) or \
-                    self.start_time >= self.stop_time:
-                raise ValueError(
-                    "start_time must be less than stop_time and numerical")
+        Raises:
+            ValueError: If average_window is not a positive number or if
+            start_time and stop_time are not numbers or if start_time is
+            greater than or equal to stop_time.
+        """
+        if not isinstance(self.average_window, (int, float)
+                          ) or self.average_window <= 0:
+            raise ValueError("average_window must be a positive number")
+        if not isinstance(self.start_time, (int, float)) or \
+                not isinstance(self.stop_time, (int, float)) or \
+                self.start_time >= self.stop_time:
+            raise ValueError(
+                "start_time must be less than stop_time and numerical")
