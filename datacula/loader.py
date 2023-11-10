@@ -7,7 +7,6 @@ import glob
 import os
 import pickle
 import netCDF4 as nc
-from datetime import datetime
 import numpy as np
 import pandas as pd
 
@@ -161,7 +160,6 @@ def data_format_checks(data: List[str], data_checks: dict) -> List[str]:
     # raise ValueError('No data left in file')
     if len(data) == 0:
         raise ValueError('No data left in file')
-    
     return data
 
 
