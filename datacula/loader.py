@@ -236,8 +236,10 @@ def parse_time_column(
 
 def sample_data(
             data: List[str],
+            data: List[str],
             time_column: int,
             time_format: str,
+            data_columns: List[int],
             data_columns: List[int],
             delimiter: str,
             date_offset: str = None,
@@ -283,9 +285,12 @@ def sample_data(
         - If no match for data value is found.
     """
     epoch_time = np.zeros(len(data))
+    epoch_time = np.zeros(len(data))
     data_array = np.zeros((len(data), len(data_columns)))
 
     for i, line in enumerate(data):
+        # split the line into an array
+        line_array = np.array(line.split(delimiter))
         # split the line into an array
         line_array = np.array(line.split(delimiter))
 
@@ -651,6 +656,12 @@ def load_datalake(path: str, sufix_name: str = None) -> object:
     data_lake : DataLake
         Loaded DataLake object.
     """
+    # add suffix to file name if present
+    if sufix_name is not None:
+        file_name = f'datalake_{sufix_name}.pk'
+    else:
+        file_name = 'datalake.pk'
+
     # add suffix to file name if present
     if sufix_name is not None:
         file_name = f'datalake_{sufix_name}.pk'
