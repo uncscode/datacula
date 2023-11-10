@@ -3,7 +3,7 @@
 import warnings
 from typing import Union, Optional, List
 import numpy as np
-from datacula import convert, stats
+from datacula import convert, stats, merger
 
 # pylint: disable=too-many-instance-attributes
 # pylint: disable=no-else-return
@@ -200,8 +200,8 @@ class DataStream():
                 header_new: list,
             ) -> None:
         """
-        Adds processed data to the data stream. Assumes the input matches the
-        raw time stream. If not it will fill the data with NaN.
+        Adds processed data to the data stream, using merger.add_processed_data
+        to merge the new data with the existing data. Then reaverages the data.
 
         Parameters:
         -----------
@@ -212,66 +212,15 @@ class DataStream():
         header_new : list
             List of headers for the new data.
         """
-        # # Check for duplicate timestamps in new data
-        # unique_timestamps, unique_indexes = np.unique(
-        #     time_new, return_index=True
-        #     )
-        # if len(unique_timestamps) != len(time_new):
-        #     if data_new.shape[0] != len(time_new):
-        #         data_new = data_new[:, unique_indexes]
-        #     else:
-        #         data_new = data_new[unique_indexes]
-        #     time_new = unique_timestamps
-        #     warnings.warn(
-        #         "Removing duplicate timestamps found in input data."
-        #         )
-
-        self.header_list = np.append(self.header_list, header_new)
-        # add other rows to the data array
-        self.data_stream = np.concatenate(
-            (
-                self.data_stream,
-                np.full(
-                    (len(header_new), self.data_stream.shape[1]),
-                    np.nan,
-                ),
-            ),
-            axis=0,
-        )
-
-        data_fit = (len(data_new.shape) == 1) or \
-            (data_new.shape[1] == self.data_stream.shape[1])
-
-        # check the length of the data
-        if data_fit:
-            # add the data
-            self.data_stream[-len(header_new):, :] = data_new
-        else:
-            # self.data_stream[-1, :] = np.interp(
-            #     self.time_stream,
-            #     time_new,
-            #     data_new,
-            # ) if len(data_new.shape) == 1 else np.apply_along_axis(
-            #     lambda x: np.interp(self.time_stream, time_new, x),
-            #     axis=1,
-            #     arr=data_new,
-            # )
-            if len(data_new.shape) == 1:
-                self.data_stream[-1, :] = np.interp(
-                    self.time_stream,
-                    time_new,
-                    data_new,
-                )
-            else:
-                # interpolate the data
-                for i in range(len(header_new)):
-                    self.data_stream[-len(header_new)+i, :] = np.interp(
-                        self.time_stream,
-                        time_new,
-                        data_new[i, :],
-                    )
-
-        self.header_dict = convert.list_to_dict(self.header_list)
+        self.data_stream, self.header_list, self.header_dict = \
+            merger.add_processed_data(
+                data=self.data_stream,
+                time=self.time_stream,
+                header_list=self.header_list,
+                data_new=data_new,
+                time_new=time_new,
+                header_new=header_new,
+            )
         self.reaverage()
 
     def merge_different_headers(
@@ -313,7 +262,7 @@ class DataStream():
         TODO: should be split into add_average_data, check_average_data, and
         extend_average_data
         """
-        base_rounding_interval_sec = 3600.0
+        base_rounding_interval_sec = self.average_base_sec
         if self.average_base_time.size == 0:  # average base initialisation
             if self.average_epoch_start is None:
                 average_time_start = int(
@@ -442,6 +391,7 @@ class DataStream():
             `self.average_base_data_std` attributes.
         """
         # Clear the current average data
+
         self.average_base_time = np.array([])
         self.average_base_data = np.array([])
         self.average_base_data_std = np.array([])
@@ -625,11 +575,9 @@ class DataStream():
         # Return either the raw data or the averaged data
         if raw:
             if datetime64:
-
-                raise NotImplementedError  # not working implement this
-
-                # return convert.datetime64_from_epoch_array(
-                #     self.time_stream)
+                # raise NotImplementedError  # not working implement this
+                return convert.datetime64_from_epoch_array(
+                    self.time_stream)
             return self.time_stream
         else:
             if datetime64:

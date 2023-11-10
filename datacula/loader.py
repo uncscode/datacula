@@ -2,15 +2,17 @@
 # pylint: disable=all
 
 from typing import List, Union, Tuple, Dict, Any
-
 import warnings
 import glob
 import os
 import pickle
+import netCDF4 as nc
 from datetime import datetime
 import numpy as np
 import pandas as pd
+
 from datacula import convert
+from datacula.time_manage import time_str_to_epoch
 
 FILTER_WARNING_FRACTION = 0.5
 
@@ -35,7 +37,7 @@ def data_raw_loader(file_path: str) -> list:
     try:
         with open(file_path, 'r', encoding='utf8', errors='replace') as file:
             data = [line.rstrip() for line in file]
-        print('Loading data from:', os.path.split(file_path)[-1])
+        # print('Loading data from:', os.path.split(file_path)[-1])
     except FileNotFoundError:
         print(f"File not found: {file_path}")
         data = []
@@ -155,6 +157,11 @@ def data_format_checks(data: List[str], data_checks: dict) -> List[str]:
         data = filter_list(data, char_counts)
     # Strip any leading or trailing whitespace from the rows.
     data = [x.strip() for x in data]
+
+    # raise ValueError('No data left in file')
+    if len(data) == 0:
+        raise ValueError('No data left in file')
+    
     return data
 
 
@@ -163,7 +170,8 @@ def parse_time_column(
             time_format: str,
             line: str,
             date_offset: str = None,
-            seconds_shift: int = 0
+            seconds_shift: int = 0,
+            timezone_identifier: str = 'UTC'
         ) -> float:
     """
     Parses the time column of a data line and returns it as a timestamp.
@@ -194,27 +202,34 @@ def parse_time_column(
     """
     if time_format == 'epoch':
         # if the time is in epoch format
-        return float(line[time_column]) + seconds_shift
+        time_epoch = float(line[time_column]) + seconds_shift
+        return time_epoch
     if date_offset:
         # if the time is in one column, and the date is fixed
         time_str = f"{date_offset} {line[time_column]}"
-        return datetime.strptime(
+        time_epoch = time_str_to_epoch(
                                     time_str,
-                                    time_format
-                                ).timestamp() + seconds_shift
+                                    time_format,
+                                    timezone_identifier
+                                ) + seconds_shift
+        return time_epoch
     if isinstance(time_column, int):
         # if the time and date are in one column
-        return datetime.strptime(
+        time_epoch = time_str_to_epoch(
                                     line[time_column],
-                                    time_format
-                                ).timestamp() + seconds_shift
+                                    time_format,
+                                    timezone_identifier
+                                ) + seconds_shift
+        return time_epoch
     if isinstance(time_column, list) and len(time_column) == 2:
         # if the time and date are in two column
         time_str = f"{line[time_column[0]]} {line[time_column[1]]}"
-        return datetime.strptime(
+        time_epoch = time_str_to_epoch(
                                     time_str,
-                                    time_format
-                                ).timestamp() + seconds_shift
+                                    time_format,
+                                    timezone_identifier
+                                ) + seconds_shift
+        return time_epoch
     raise ValueError(
         f"Invalid time column or format: {time_column}, {time_format}")
 
@@ -227,6 +242,7 @@ def sample_data(
             delimiter: str,
             date_offset: str = None,
             seconds_shift: int = 0,
+            timezone_identifier: str = 'UTC'
         ) -> Tuple[np.ndarray, np.ndarray]:
     """
     Samples the data to get the time and data streams.
@@ -248,6 +264,8 @@ def sample_data(
         'days:hours:minutes:seconds'. Defaults to None.
     seconds_shift : int, optional
         An integer that represents a time shift in seconds. Defaults to 0.
+    timezone_identifier : str, optional
+        What timezone the data is in. Defaults to 'UTC'.
 
     Returns:
     --------
@@ -265,9 +283,12 @@ def sample_data(
         - If no match for data value is found.
     """
     epoch_time = np.zeros(len(data))
+    epoch_time = np.zeros(len(data))
     data_array = np.zeros((len(data), len(data_columns)))
 
     for i, line in enumerate(data):
+        # split the line into an array
+        line_array = np.array(line.split(delimiter))
         # split the line into an array
         line_array = np.array(line.split(delimiter))
 
@@ -276,29 +297,65 @@ def sample_data(
             time_format=time_format,
             line=line_array,
             date_offset=date_offset,
-            seconds_shift=seconds_shift
+            seconds_shift=seconds_shift,
+            timezone_identifier=timezone_identifier
         )
 
-        values = line_array[data_columns]
-        try:
-            data_array[i] = values.astype(float)
-        except ValueError:
-            bool_true = np.isin(values, ['ON', 'on', 'On', 'oN', '1', 'True',
-                                         'TRUE', 'tRUE', 't', 'T', 'Yes',
-                                         'yES', 'y', 'Y', 'true', 'yes',
-                                         'YES'])
-            bool_false = np.isin(values, ['OFF', 'off', 'Off', 'oFF', '0',
-                                          'False', 'false', 'FALSE', 'fALSE',
-                                          'F', 'No', 'no', 'NO', 'nO', 'n',
-                                          'N', 'f'])
-            bool_nan = np.isin(values, ['NaN', 'nan', 'Nan', 'nAN', 'NAN',
-                                        'nAn', 'naN', 'NA', 'Na', 'nA', 'na',
-                                        'N', 'n', '', 'aN', 'null', 'NULL',
-                                        'Null', 'NaN', '-99999', '-9999'])
-            # regex may be faster, if it can be vectorized
-            data_array[i][bool_true] = 1
-            data_array[i][bool_false] = 0
-            data_array[i][bool_nan] = np.nan
+        for j, col in enumerate(data_columns):
+            if col < len(line_array):
+                value = line_array[col].strip()
+            else:
+                value = ''
+
+            if value == '' or value == '.':  # no data
+                data_array[i, j] = np.nan
+            elif value.count('�') > 0:
+                data_array[i, j] = np.nan
+            elif value[0].isnumeric():  # if the first character is a number
+                data_array[i, j] = float(value)
+            elif value[-1].isnumeric():
+                data_array[i, j] = float(value)
+            elif value[0] == '-':
+                data_array[i, j] = float(value)
+            elif value[0] == '+':
+                data_array[i, j] = float(value)
+            elif value[0] == '.':
+                try:
+                    data_array[i, j] = float(value)
+                except ValueError:
+                    print(line_array)
+                    raise ValueError(
+                        f'Data is not a float: row {i}, col {j}, value {value}'
+                        )
+
+            elif value.isalpha():
+                true_match = [
+                        'ON', 'on', 'On', 'oN', '1', 'True', 'true',
+                        'TRUE', 'tRUE', 't', 'T', 'Yes', 'yes', 'YES',
+                        'yES', 'y', 'Y'
+                    ]
+                false_match = [
+                        'OFF', 'off', 'Off', 'oFF', '0',
+                        'False', 'false', 'FALSE', 'fALSE', 'f',
+                        'F', 'No', 'no', 'NO', 'nO', 'n', 'N'
+                    ]
+                nan_match = [
+                        'NaN', 'nan', 'Nan', 'nAN', 'NAN', 'NaN',
+                        'nAn', 'naN', 'NA', 'Na', 'nA', 'na',
+                        'N', 'n', '', 'aN', 'null', 'NULL', 'Null',
+                        '-99999', '-9999', '.'
+                    ]
+                if value in true_match:
+                    data_array[i, j] = 1
+                elif value in false_match:
+                    data_array[i, j] = 0
+                elif value in nan_match:
+                    data_array[i, j] = np.nan
+                else:
+                    raise ValueError(
+                        f'No match for data value: row {i}, \
+                             col {j}, value {value}'
+                        )
 
     return epoch_time, data_array
 
@@ -312,6 +369,7 @@ def general_data_formatter(
     delimiter: str = ',',
     date_offset: str = None,
     seconds_shift: int = 0,
+    timezone_identifier: str = 'UTC'
 ) -> Tuple[np.array, np.array]:
     """
     Formats and samples the data to get the time and data streams.
@@ -353,6 +411,7 @@ def general_data_formatter(
         delimiter,
         date_offset,
         seconds_shift,
+        timezone_identifier
     )
 
     return epoch_time, data_array
@@ -365,7 +424,9 @@ def sizer_data_formatter(
             time_column: int,
             time_format: str,
             delimiter: str = ',',
-            date_offset: str = None
+            date_offset: str = None,
+            seconds_shift: int = 0,
+            timezone_identifier: str = 'UTC'
         ) -> Tuple[np.ndarray, List[str], np.ndarray, np.ndarray]:
     """
     Formats data from a particle sizer.
@@ -386,6 +447,10 @@ def sizer_data_formatter(
         The delimiter used in the data.
     date_offset : str, default=None
         The date offset to add to the timestamp.
+    seconds_shift : int, default=0
+        The number of seconds to add to the timestamp.
+    timezone_identifier : str, default='UTC'
+        The timezone identifier for the data.
 
     Returns
     -------
@@ -418,7 +483,9 @@ def sizer_data_formatter(
         time_format,
         dp_columns,
         delimiter,
-        date_offset
+        date_offset,
+        seconds_shift=seconds_shift,
+        timezone_identifier=timezone_identifier
     )
     epoch_time, data_smps_1d = sample_data(
         data,
@@ -426,8 +493,27 @@ def sizer_data_formatter(
         time_format,
         data_column,
         delimiter,
-        date_offset
+        date_offset,
+        seconds_shift=seconds_shift,
+        timezone_identifier=timezone_identifier
     )
+
+    if "convert_scale_from" in data_sizer_reader.keys():
+        if data_sizer_reader["convert_scale_from"] == "dw":
+            inverse = True
+        elif data_sizer_reader["convert_scale_from"] == "dw/dlogdp":
+            inverse = False
+        else:
+            raise ValueError(
+                "Invalid value for convert_scale_from in data_sizer_reader." +
+                " Either dw/dlogdp or dw must be specified."
+            )
+        for i in range(len(epoch_time)):
+            data_smps_2d[i, :] = convert.convert_sizer_dn(
+                diameter=np.array(dp_header).astype(float),
+                dn_dlogdp=data_smps_2d[i, :],
+                inverse=inverse
+            )
 
     return epoch_time, dp_header, data_smps_2d, data_smps_1d
 
@@ -508,9 +594,6 @@ def get_files_in_folder_with_size(
         raise ValueError(f"{search_path} is not a directory")
 
     file_list = glob.glob(os.path.join(search_path, filename_regex))
-    # os.chdir(search_path) # this should not be needed
-    # file_list = glob.glob(filename_regex)
-    # os.chdir(original_path)
 
     # filter the files by size
     file_list = [
@@ -537,6 +620,7 @@ def save_datalake(path: str, data_lake: object = None, sufix_name: str = None):
     sufix_name : str, optional
         Suffix to add to pickle file name. The default is None.
     """
+    print('Saving datalake...')
     # create output folder if it does not exist
     output_folder = os.path.join(path, 'output')
     os.makedirs(output_folder, exist_ok=True)
@@ -553,6 +637,7 @@ def save_datalake(path: str, data_lake: object = None, sufix_name: str = None):
     # save datalake
     with open(file_path, 'wb') as file:
         pickle.dump(data_lake, file)
+    print('Datalake saved')
 
 
 def load_datalake(path: str, sufix_name: str = None) -> object:
@@ -569,6 +654,12 @@ def load_datalake(path: str, sufix_name: str = None) -> object:
     data_lake : DataLake
         Loaded DataLake object.
     """
+    # add suffix to file name if present
+    if sufix_name is not None:
+        file_name = f'datalake_{sufix_name}.pk'
+    else:
+        file_name = 'datalake.pk'
+
     # add suffix to file name if present
     if sufix_name is not None:
         file_name = f'datalake_{sufix_name}.pk'
@@ -669,3 +760,182 @@ def datalake_to_csv(
             time_shift_sec=time_shift_sec,
         )
         print('saved: ', key)
+
+
+def netcdf_get_epoch_time(
+        file_path: str,
+        settings: dict
+) -> np.ndarray:
+    """
+    Given a netCDF file path and settings, returns an array of epoch times in
+    seconds as a float.
+
+    Currently only uses ARM 1.2 netCDF files (base_time + time_offset)
+
+    Parameters:
+    ----------
+        file_path (str): The path to the netCDF file.
+        settings (dict): A dictionary containing settings for the instrument.
+
+    Returns:
+    -------
+        np.ndarray: An array of epoch times, in seconds as a float.
+    """
+    nc_file = nc.Dataset(file_path)
+
+    epoch_time = np.zeros(nc_file.dimensions['time'].size)
+
+    for time_col in settings['time_column']:
+        epoch_time += nc_file.variables.get(time_col)[:]
+    epoch_time = np.array(epoch_time.astype(float))
+    nc_file.close()
+
+    return epoch_time
+
+
+def netcdf_data_1d_load(
+        file_path: str,
+        settings: dict
+) -> Tuple[np.ndarray, list, np.ndarray]:
+    """
+    Given a netCDF file path and settings, returns a tuple containing the
+    epoch time, header, and data as a numpy array. We do apply the mask to the
+    data, and fill the masked values with nan.
+
+    Parameters:
+    ----------
+        file_path (str): The path to the netCDF file.
+        settings (dict): A dictionary containing settings for the instrument.
+
+    Returns:
+    -------
+        Tuple[np.ndarray, list, np.ndarray]: A tuple containing the epoch time,
+        header, and data as a numpy array.
+
+    Errors:
+    ------
+        KeyError: If the settings dictionary does not contain 'data_1d'.
+    """
+    # check if data_1d is in the settings dic
+    if 'data_1d' not in settings['netcdf_reader']:
+        raise KeyError("data_1d not in settings['netcdf_reader']")
+
+    # get header
+    header_1d = settings['netcdf_reader']['header_1d']
+
+    nc_file = nc.Dataset(file_path)
+    # get epoch time
+    epoch_time = netcdf_get_epoch_time(file_path, settings)
+
+    # empty array to store data
+    data_1d = np.zeros(
+        (len(settings['netcdf_reader']['data_1d']),
+         nc_file.dimensions['time'].size)
+    )
+    # select and fill masked array with nan
+    for i, data_col in enumerate(settings['netcdf_reader']['data_1d']):
+        try:
+            data = nc_file.variables.get(data_col)[:]
+            data_1d[i, :] = np.ma.filled(data.astype(float), np.nan)
+        except (TypeError, KeyError):
+            data_1d[i, :] = np.nan
+            warnings.warn([data_col + " not found in the netCDF file"])
+    nc_file.close()
+
+    # check data shape, transpose if necessary so that time is last dimension
+    data_1d = convert.data_shape_check(
+        time=epoch_time,
+        data=data_1d,
+        header=header_1d)
+
+    return epoch_time, header_1d, data_1d
+
+
+def netcdf_data_2d_load(
+        file_path: str,
+        settings: dict
+) -> Tuple[np.array, list, np.ndarray]:
+    """
+    Given a netCDF file path and settings, returns a tuple containing the
+    epoch time, header, and data as a numpy array. We do apply the mask to the
+    data, and fill the masked values with nan.
+
+    Parameters:
+    ----------
+        file_path (str): The path to the netCDF file.
+        settings (dict): A dictionary containing settings for the instrument.
+
+    Returns:
+    -------
+        Tuple[np.ndarray, list, np.ndarray]: A tuple containing the epoch time,
+        header, and data as a numpy array.
+
+    Errors:
+    ------
+        KeyError: If the settings dictionary does not contain 'data_2d'.
+    """
+    # check if data_1d is in the settings dic
+    if 'data_2d' not in settings['netcdf_reader']:
+        raise KeyError("data_2d not in settings['netcdf_reader']")
+
+    # get epoch time
+    epoch_time = netcdf_get_epoch_time(file_path, settings)
+    # load netcdf file
+    nc_file = nc.Dataset(file_path)
+
+    # select data_2d
+    data_2d = nc_file.variables.get(settings['netcdf_reader']['data_2d'])[:]
+    # convert masked array to numpy array
+    data_2d = np.ma.filled(data_2d.astype(float), np.nan)
+    # get header
+    header_2d = nc_file.variables.get(
+        settings['netcdf_reader']['header_2d']
+        )[:]
+    nc_file.close()
+
+    # convert header to list of strings
+    header_2d = [str(item) for item in header_2d.tolist()]
+
+    # check data shape, transpose if necessary so that time is last dimension
+    data_2d = convert.data_shape_check(
+        time=epoch_time,
+        data=data_2d,
+        header=header_2d)
+
+    return epoch_time, header_2d, data_2d
+
+
+def netcdf_info_print(file_path, file_return=False):
+    """
+    Prints information about a netCDF file. Useful for generating settings
+    dictionaries.
+
+    Parameters:
+    ----------
+        file_path (str): The path to the netCDF file.
+        file_return (bool): If True, returns the netCDF file object.
+            Defaults to False.
+
+    Returns:
+    -------
+        nc_file (netCDF4.Dataset): The netCDF file object.
+    """
+
+    nc_file = nc.Dataset(file_path)
+    print("Dimensions:")
+    for dim in nc_file.dimensions:
+        print(dim, len(nc_file.dimensions[dim]))
+    print("\nVariables:")
+    for var in nc_file.variables:
+        print(var,
+              nc_file.variables[var].shape,
+              nc_file.variables[var].dtype)
+    print("\nHeaders:")
+    for attr in nc_file.ncattrs():
+        print(attr, "=", getattr(nc_file, attr))
+
+    if file_return:
+        return nc_file
+    else:
+        nc_file.close()
+        return None

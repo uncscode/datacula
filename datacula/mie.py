@@ -40,7 +40,11 @@ def discretize_AutoMieQ(
     -------
     Q_ext, Q_sca, Q_abs, g, Q_pr, Q_back, Q_ratio
     """
-    Q_ext, Q_sca, Q_abs, g, Q_pr, Q_back, Q_ratio = ps.AutoMieQ(m, wavelength, dp, nMedium)
+    Q_ext, Q_sca, Q_abs, g, Q_pr, Q_back, Q_ratio = ps.AutoMieQ(
+        m=m,
+        wavelength=wavelength,
+        diameter=dp,
+        nMedium=nMedium)
     return Q_ext, Q_sca, Q_abs, g, Q_pr, Q_back, Q_ratio
 
 
@@ -57,7 +61,7 @@ def Mie_SD(
         discretize=False,
         truncation_calculation=False,
         truncation_Bsca_multiple=None):
-    """Return the extinction coefficient only
+    """Return the extinction coefficient only if set to true
 
     Parameters
     ----------
@@ -187,7 +191,8 @@ def extinction_ratio_wet_dry(
         water_refractive_index=1.33,
         wavelength=450,
         discretize_Mie=True,
-        return_Bext=False,
+        return_coefficients=False,
+        return_all_optics=False,
         ):
     """
     Calculate the extinction ratio of a dry aerosol to a wet aerosol.
@@ -215,6 +220,10 @@ def extinction_ratio_wet_dry(
         wavelength of light in nm
     discretize_Mie : bool optional
         discretize the Mie calculation so it can be cached
+    return_coefficients : bool optional
+        return the extinction of the wet and dry aerosol
+    return_all_optics : bool optional
+        return all the optics of the wet and dry aerosol
 
     Returns
     -------
@@ -245,40 +254,40 @@ def extinction_ratio_wet_dry(
     n_effective_dry = convert.effective_refractive_index(
             refractive_index_dry,
             water_refractive_index,
-            volume_water_dry[-1],
-            volume_dry[-1]
+            volume_dry[-1],
+            volume_water_dry[-1]
         )
     n_effective_wet = convert.effective_refractive_index(
             refractive_index_dry,
             water_refractive_index,
-            volume_water_wet[-1],
-            volume_dry[-1]
+            volume_dry[-1],
+            volume_water_wet[-1]
         )
 
     # calculate the extinction for the dry and wet aerosol
-    extinction_dry = Mie_SD(
+    optics_dry = Mie_SD(
             n_effective_dry,
             wavelength,
             dp=convert.volume_to_length(volume_dry+volume_water_dry, length_type='diameter'),
             ndp=particle_counts,
             SMPS=True,
-            extinction_only=True,
+            extinction_only=not(return_all_optics),
             discretize=discretize_Mie
         )
-    extinction_wet = Mie_SD(
+    optics_wet = Mie_SD(
             n_effective_wet,
             wavelength,
             dp=convert.volume_to_length(volume_dry+volume_water_wet, length_type='diameter'),
             ndp=particle_counts,
             SMPS=True,
-            extinction_only=True,
+            extinction_only=not(return_all_optics),
             discretize=discretize_Mie
         )
 
-    if return_Bext:
-        return extinction_wet, extinction_dry
+    if return_coefficients:
+        return optics_wet, optics_dry
     else:
-        return extinction_wet / extinction_dry
+        return optics_wet / optics_dry
 
 
 def fit_extinction_ratio_with_kappa(
@@ -351,7 +360,7 @@ def fit_extinction_ratio_with_kappa(
             water_refractive_index=water_refractive_index,
             wavelength=wavelength,
             discretize_Mie=discretize_Mie,
-            return_Bext=False
+            return_coefficients=False
         )
         return np.abs(ratio_guess - Bext_wet/Bext_dry)
 
