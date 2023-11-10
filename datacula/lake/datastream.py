@@ -1,6 +1,4 @@
-"""creates the DataStream class"""
-# pylint: disable=too-many-instance-attributes
-# pylint: disable=no-else-return
+"""creates the Stream class"""
 
 from typing import List
 from dataclasses import dataclass, field
@@ -10,7 +8,7 @@ from datacula import convert
 
 @dataclass
 class Stream():
-    """A class for consistant data storage and format.
+    """A class for consistent data storage and format.
 
     Attributes:
     ---------
@@ -29,7 +27,7 @@ class Stream():
         Validates the inputs to the Stream class.
     datetime64 -> np.ndarray
         Returns an array of datetime64 objects representing the time stream.
-        Usesfull for plotting, with matplotlib.dates.
+        Useful for plotting, with matplotlib.dates.
     return_header_dict -> dict
         Returns the header as a dictionary with keys as header elements and
         values as their indices.
@@ -45,6 +43,12 @@ class Stream():
         self.validate_inputs()
 
     def validate_inputs(self):
+        """
+        Validates the inputs for the DataStream object.
+
+        Raises:
+            TypeError: If header is not a list.
+        """
         if not isinstance(self.header, list):
             raise TypeError("header_list must be a list")
 
@@ -52,7 +56,7 @@ class Stream():
     def datetime64(self) -> np.ndarray:
         """
         Returns an array of datetime64 objects representing the time stream.
-        Usesfull for plotting, with matplotlib.dates.
+        Useful for plotting, with matplotlib.dates.
         """
         return convert.datetime64_from_epoch_array(self.time)
 
@@ -85,7 +89,7 @@ class StreamAveraged(Stream):
 
     def validate_averaging_params(self):
         """
-        Validates the averaging parameters for the datastream.
+        Validates the averaging parameters for the stream.
 
         Raises:
             ValueError: If average_window is not a positive number or if
