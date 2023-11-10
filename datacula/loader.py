@@ -236,10 +236,8 @@ def parse_time_column(
 
 def sample_data(
             data: List[str],
-            data: List[str],
             time_column: int,
             time_format: str,
-            data_columns: List[int],
             data_columns: List[int],
             delimiter: str,
             date_offset: str = None,
