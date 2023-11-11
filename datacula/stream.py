@@ -62,9 +62,9 @@ class Stream():
 
     @property
     def return_header_dict(self) -> dict:
-        """Returns the header as a dictionary with keys as header elements and
-            values as their indices."""
-        return {value: index for index, value in enumerate(self.header)}
+        """Returns the header as a dictionary with index (0, 1) as the keys
+        and the names as values."""
+        return dict(enumerate(self.header))
 
 
 @dataclass
@@ -78,10 +78,10 @@ class StreamAveraged(Stream):
         standard_deviation (float): The standard deviation of the data.
     """
 
-    average_window: float
-    start_time: float
-    stop_time: float
-    standard_deviation: float = field(default_factory=np.array)
+    average_window: float = field(default_factory=float)
+    start_time: float = field(default_factory=float)
+    stop_time: float = field(default_factory=float)
+    standard_deviation: np.array = field(default_factory=np.array)
 
     def __post_init__(self):
         super().__post_init__()
