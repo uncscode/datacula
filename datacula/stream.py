@@ -35,8 +35,8 @@ class Stream:
 
     # Initialize other fields as empty arrays
     header: List[str] = field(default_factory=list)
-    data: np.ndarray = field(default_factory=np.array)
-    time: np.ndarray = field(default_factory=np.array)
+    data: np.ndarray = field(default_factory=lambda: np.array([]))
+    time: np.ndarray = field(default_factory=lambda: np.array([]))
     files: List[str] = field(default_factory=list)
 
     def __post_init__(self):

@@ -13,6 +13,7 @@ def test_stream_initialization():
     files = ['file1', 'file2']
 
     # Act
+    # stream = Stream(header=header)
     stream = Stream(header=header, data=data, time=time, files=files)
 
     # Assert

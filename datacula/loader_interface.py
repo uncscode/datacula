@@ -3,7 +3,8 @@ from typing import Dict, Any, List
 import os
 from datacula import loader
 from datacula.stream import Stream
-
+from datacula import convert
+import numpy as np
 
 def get_new_files(
         path: str,
@@ -88,77 +89,171 @@ def get_new_files(
         first_pass = True
     else:
         first_pass = False
-        # check if the files are the same loop through the files
+        # check if the files are the same
         new_full_paths = []
         new_file_info = []
         for i, comparison_list in enumerate(file_info):
             if comparison_list not in loaded_list:
+                # keep the new files
                 new_full_paths.append(full_paths[i])
                 new_file_info.append(comparison_list)
-        full_paths = new_full_paths
+        full_paths = new_full_paths  # replace to return only new files
         file_info = new_file_info
     return full_paths, first_pass, file_info
 
 
-# def load_files_interface(
-#         full_paths: list,
-#         settings: dict,
-#         stream: Stream,
-# ) -> None:
-#     first_pass = True
-#     # load the data type
-#     for file_i, path in enumerate(full_paths):
-#         print('Loading data from:', os.path.split(path)[-1])
+def load_files_interface(
+        path: str,
+        settings: dict,
+        stream: object = None,
+) -> object:
+    """
+    Load files into a stream object based on settings.
+    """
+    if stream is None:
+        stream = Stream(
+            header=[],
+            data=np.array([]),
+            time=np.array([]),
+            files=[]
+        )
+    # get the files to load
+    full_paths, first_pass, file_info = get_new_files(
+        path=path,
+        import_settings=settings,
+        loaded_list=stream.files
+    )
 
-#         if self.settings[key]['data_loading_function'] == 'general_1d_load':
-#             self.initialise_1d_datastream(key, path, first_pass)
-#             first_pass = False
-#         elif (self.settings[key]['data_loading_function'] ==
-#                 'general_2d_sizer_load'):
-#             self.initialise_2d_datastream(key, path, first_pass)
-#             first_pass = False
-#         elif (self.settings[key]['data_loading_function'] ==
-#                 'netcdf_load'):
-#             self.initialise_netcdf_datastream(key, path, first_pass)
-#             first_pass = False
-#         else:
-#             raise ValueError('Data loading function not recognised',
-#                              self.settings[key]['data_loading_function'])
+    # load the data type
+    for file_i, file_path in enumerate(full_paths):
+        print('Loading data from:', file_info[file_i][0])
+
+        if settings['data_loading_function'] == 'general_1d_load':
+            stream = get_1d_stream(
+                file_path=file_path,
+                first_pass=first_pass,
+                settings=settings,
+                stream=stream
+            )
+            stream.files.append(file_info[file_i])  # add file info as loaded
+
+        # elif (self.settings[key]['data_loading_function'] ==
+        #         'general_2d_sizer_load'):
+        #     self.initialise_2d_datastream(key, path, first_pass)
+        #     first_pass = False
+        # elif (self.settings[key]['data_loading_function'] ==
+        #         'netcdf_load'):
+        #     self.initialise_netcdf_datastream(key, path, first_pass)
+        #     first_pass = False
+        else:
+            raise ValueError('Data loading function not recognised',
+                             settings['data_loading_function'])
+    return stream
 
 
-# def initialise_1d_datastream(
-#     self,
-#     key: str,
-#     path: str,
-#     first_pass: bool
-# ) -> None:
-#     """
-#     Initialises a 1D datastream using the settings in the DataLake object.
+def get_1d_stream(
+    file_path: str,
+    settings: dict,
+    first_pass: bool = True,
+    stream: object = None,
+) -> object:
+    """
+    Loads and formats a 1D data stream from a file and initializes or updates 
+    a Stream object.
 
-#     Parameters:
-#     ----------
-#         key (str): The key of the datastream to initialise.
-#         path (str): The path of the file to load data from.
-#         first_pass (bool): Whether this is the first time loading data.
+    Parameters:
+    ----------
+    file_path : str
+        The path of the file to load data from.
+    first_pass : bool
+        Whether this is the first time data is being loaded. If True, the
+        stream is initialized.
+        If False, raises an error as only one file can be loaded.
+    settings : dict
+        A dictionary containing data formatting settings such as data checks,
+        column names,
+        time format, delimiter, and timezone information.
+    stream : Stream, optional
+        An instance of Stream class to be updated with loaded data. Defaults
+        to a new Stream object.
 
-#     Returns:
-#     ----------
-#         None.
+    Returns:
+    -------
+    Stream
+        The Stream object updated with the loaded data and corresponding time
+        information.
 
-#     : change the way the datastream is stored so type hints can be used
-#     """
-#     epoch_time, data = self.import_general_data(path, key)
-#     if first_pass:
-#         self.datastreams[
-#             self.settings[key]['data_stream_name']] = DataStream(
-#                 header_list=self.settings[key]['data_header'],
-#                 average_times=[600],
-#                 average_base=self.settings[key]['base_interval_sec']
-#         )
-#     self.datastreams[self.settings[key]['data_stream_name']].add_data(
-#         time_stream=epoch_time,
-#         data_stream=data,
-#     )
+    Raises:
+    ------
+    ValueError
+        If `first_pass` is False, indicating data has already been loaded.
+    TypeError
+        If `settings` is not a dictionary.
+    FileNotFoundError
+        If the file specified by `file_path` does not exist.
+    KeyError
+        If any required keys are missing in the `settings` dictionary.
+    """
+    if stream is None:
+        stream = Stream(
+            header=[],
+            data=np.array([]),
+            time=np.array([]),
+            files=[]
+        )
+    # Input validation
+    if not isinstance(settings, dict):
+        raise TypeError("The setting parameters must be in a dictionary.")
+
+    required_keys = ['data_checks', 'data_column', 'time_column',
+                     'time_format', 'delimiter', 'Time_shift_seconds',
+                     'timezone_identifier', 'data_header']
+    if not all(key in settings for key in required_keys):
+        raise KeyError(f"The settings dictionary is missing required keys: \
+                       {required_keys}")
+
+    if not os.path.isfile(file_path):
+        raise FileNotFoundError(f"The file path specified does not exist: \
+                                {file_path}")
+
+    if not isinstance(first_pass, bool):
+        raise TypeError("The first_pass parameter must be a boolean.")
+
+    # should should consolidate and abstract this
+    data = loader.data_raw_loader(file_path=file_path)
+
+    if 'date_location' in settings.keys():
+        date_offset = loader.non_standard_date_location(
+                data=data,
+                date_location=settings['date_location']
+            )
+    else:
+        date_offset = None
+
+    epoch_time, data = loader.general_data_formatter(
+        data=data,
+        data_checks=settings['data_checks'],
+        data_column=settings['data_column'],
+        time_column=settings['time_column'],
+        time_format=settings['time_format'],
+        delimiter=settings['delimiter'],
+        date_offset=date_offset,
+        seconds_shift=settings['Time_shift_seconds'],
+        timezone_identifier=settings['timezone_identifier']
+    )
+
+    # check data shape
+    data = convert.data_shape_check(
+        time=epoch_time,
+        data=data,
+        header=settings['data_header'])
+    if first_pass:
+        stream.header = settings['data_header']
+        stream.data = data
+        stream.time = epoch_time
+    else:
+        raise ValueError('Only one file can be loaded at a time')
+    return stream
 
 
 # def initialise_2d_datastream(

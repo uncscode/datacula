@@ -1,7 +1,6 @@
 """test for import_interface.py"""
 
-import datacula.import_interface as import_interface
-from datacula.stream import Stream
+import datacula.loader_interface as import_interface
 
 
 def generate_files(
