@@ -1,4 +1,4 @@
-"""creates the Stream class"""
+
 
 from typing import List
 from dataclasses import dataclass, field
@@ -7,7 +7,7 @@ from datacula import convert
 
 
 @dataclass
-class Stream():
+class Stream:
     """A class for consistent data storage and format.
 
     Attributes:
