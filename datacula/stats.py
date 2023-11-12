@@ -37,7 +37,7 @@ def drop_zeros(datastream_object: object, zero_keys: list) -> object:
     return datastream_object
 
 
-def merge_formating(
+def merge_formatting(
         data_current: np.array,
         header_current: list,
         data_new: np.array,

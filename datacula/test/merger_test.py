@@ -11,7 +11,7 @@ def create_sample_data():
     return data, time, header_list
 
 
-def test_add_processed_data_with_2D_data():
+def test_combine_data_with_2D_data():
     # Setup
     data, time, header_list = create_sample_data()
     data_new = np.array([[7, 7], [8, 8]])
@@ -19,7 +19,7 @@ def test_add_processed_data_with_2D_data():
     header_new = ['header3', 'header4']
 
     # Execution
-    merged_data, merged_header_list, _ = merger.add_processed_data(
+    merged_data, merged_header_list, _ = merger.combine_data(
         data, time, header_list, data_new, time_new, header_new)
 
     # Verification
@@ -31,7 +31,7 @@ def test_add_processed_data_with_2D_data():
     assert np.all(merged_header_list == expected_header_list)
 
 
-def test_add_processed_data_with_1D_data():
+def test_combine_data_with_1D_data():
     # Setup
     data, time, header_list = create_sample_data()
     data_new = np.array([7, 7])
@@ -39,7 +39,7 @@ def test_add_processed_data_with_1D_data():
     header_new = ['header3']
 
     # Execution
-    merged_data, merged_header_list, _ = merger.add_processed_data(
+    merged_data, merged_header_list, _ = merger.combine_data(
         data, time, header_list, data_new, time_new, header_new)
 
     # Verification
@@ -51,7 +51,7 @@ def test_add_processed_data_with_1D_data():
     assert np.all(merged_header_list == expected_header_list)
 
 
-def test_add_processed_data_with_nan_values():
+def test_combine_data_with_nan_values():
     # Setup
     data, time, header_list = create_sample_data()
     data_new = np.array([
@@ -60,7 +60,7 @@ def test_add_processed_data_with_nan_values():
     header_new = ['header3', 'header4', 'header5']
 
     # Execution
-    merged_data, merged_header_list, _ = merger.add_processed_data(
+    merged_data, merged_header_list, _ = merger.combine_data(
         data, time, header_list, data_new, time_new, header_new)
 
     # Verification
@@ -76,7 +76,7 @@ def test_add_processed_data_with_nan_values():
     assert np.all(merged_header_list == expected_header_list)
 
 
-def test_add_processed_data_with_transposed_input():
+def test_combine_data_with_transposed_input():
     # Setup
     data, time, header_list = create_sample_data()
     data_new = np.array([
@@ -85,7 +85,7 @@ def test_add_processed_data_with_transposed_input():
     header_new = ['header3', 'header4', 'header5']
 
     # Execution
-    merged_data, merged_header_list, _ = merger.add_processed_data(
+    merged_data, merged_header_list, _ = merger.combine_data(
         data, time, header_list, data_new, time_new, header_new)
 
     # Verification
@@ -100,7 +100,7 @@ def test_add_processed_data_with_transposed_input():
     assert np.all(merged_header_list == expected_header_list)
 
 
-def test_add_processed_data_same_time_2D_data():
+def test_combine_data_same_time_2D_data():
     # Setup
     data, time, header_list = create_sample_data()
     data_new = np.array([[7, 8], [7, 8], [7, 8], [7, 8], [7, 8]])
@@ -108,7 +108,7 @@ def test_add_processed_data_same_time_2D_data():
     header_new = ['header3', 'header4']
 
     # Execution
-    merged_data, merged_header_list, _ = merger.add_processed_data(
+    merged_data, merged_header_list, _ = merger.combine_data(
         data, time, header_list, data_new, time_new, header_new)
 
     # Verification
@@ -120,7 +120,7 @@ def test_add_processed_data_same_time_2D_data():
     assert np.all(merged_header_list == expected_header_list)
 
 
-def test_add_processed_data_same_time_1D_data():
+def test_combine_data_same_time_1D_data():
     # Setup
     data, time, header_list = create_sample_data()
     data_new = np.array([7, 7, 7, 7, 7])
@@ -128,7 +128,7 @@ def test_add_processed_data_same_time_1D_data():
     header_new = ['header3']
 
     # Execution
-    merged_data, merged_header_list, _ = merger.add_processed_data(
+    merged_data, merged_header_list, _ = merger.combine_data(
         data, time, header_list, data_new, time_new, header_new)
 
     # Verification

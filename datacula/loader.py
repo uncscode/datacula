@@ -594,12 +594,14 @@ def get_files_in_folder_with_size(
     file_list = glob.glob(os.path.join(search_path, filename_regex))
 
     # filter the files by size
-    file_list = [
+    full_path = [
         file for file in file_list
         if os.path.getsize(os.path.join(search_path, file)) > min_size
     ]
 
-    full_path = [os.path.join(search_path, file) for file in file_list]
+    # get the file names onlye
+    file_list = [os.path.split(path)[-1]
+                 for path in full_path]
     file_size_in_bytes = [os.path.getsize(path) for path in full_path]
 
     return file_list, full_path, file_size_in_bytes

@@ -3,7 +3,7 @@ from typing import Dict, Any, List
 import os
 from datacula import loader
 from datacula.stream import Stream
-from datacula import convert
+from datacula import convert, merger
 import numpy as np
 
 def get_new_files(
@@ -136,6 +136,7 @@ def load_files_interface(
                 stream=stream
             )
             stream.files.append(file_info[file_i])  # add file info as loaded
+            first_pass = False
 
         # elif (self.settings[key]['data_loading_function'] ==
         #         'general_2d_sizer_load'):
@@ -252,7 +253,13 @@ def get_1d_stream(
         stream.data = data
         stream.time = epoch_time
     else:
-        raise ValueError('Only one file can be loaded at a time')
+        stream = merger.stream_add_data(
+            stream=stream,
+            time_new=epoch_time,
+            data_new=data,
+            header_check=True,
+            header_new=settings['data_header']
+        )
     return stream
 
 

@@ -18,10 +18,10 @@
 # %% Imports
 # all the imports, but we'll go through them one by one as we use them
 import os
-import numpy as np
 import matplotlib.pyplot as plt
 from datacula import loader
-from datacula.stream import Stream
+from datacula import loader_interface, settings_generator
+from datacula.test.data.get_example_data import get_data_folder
 
 # %% path
 # set the parent directory of the data folder, for now this is the same as the
@@ -29,11 +29,13 @@ from datacula.stream import Stream
 #
 # imports os to get the current working directory
 import os
+from datacula.test.data.get_example_data import get_data_folder
+
 current_path = os.getcwd()
 print('Current path for this script:')
 print(current_path)
 
-path = os.path.join(current_path, 'data')
+path = get_data_folder()
 print('Path to data folder:')
 print(path)
 
@@ -47,7 +49,7 @@ print(path)
 data_file = os.path.join(
     path,
     'CPC_3010_data',
-    'CPC_3010_data_20220701_Jul.csv')
+    'CPC_3010_data_20220709_Jul.csv')
 
 # print the file path
 print(data_file)
@@ -88,7 +90,7 @@ data = loader.data_format_checks(
     data=raw_data,
     data_checks={
         "characters": [10, 100],
-        "char_counts": {",": 4, "/": 0},  # this can be anything "adsf": 10
+        "char_counts": {",": 4},  # this can be anything "adsf": 10
         "skip_rows": 0,
         "skip_end": 0
         }
@@ -211,7 +213,7 @@ for key, value in settings.items():
 # import the interface
 from datacula import loader_interface
 
-working_path = os.path.join(current_path, 'data')
+working_path = get_data_folder()
 
 # copied from above,
 # or you could just say cpc_setting=settings_generator.for_1d_general_file(...)
@@ -250,6 +252,24 @@ data_stream = loader_interface.load_files_interface(
 # print data stream summary
 print('Stream:')
 print(data_stream)
+
+
+# %% plot the data
+
+# plot the data
+fig, ax = plt.subplots()
+ax.plot(data_stream.datetime64,
+        data_stream.data[0, :],  # data_stream.data is a 2d array, so we need
+                                 # to specify which column we want to plot
+        label="data column 1",
+        linestyle="none",
+        marker=".",)
+plt.tick_params(rotation=-35)
+ax.set_xlabel("Time (epoch)")
+ax.set_ylabel("Data")
+ax.legend()
+plt.show()
+fig.tight_layout()
 
 
 # %%

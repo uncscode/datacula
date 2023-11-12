@@ -13,7 +13,7 @@ def test_merge_format_str_headers():
     header_add = ['c', 'd']
 
     # Call function to merge the data and headers
-    data, header, merged_data, merged_header = stats.merge_formating(
+    data, header, merged_data, merged_header = stats.merge_formatting(
         data_current=data,
         header_current=header,
         data_new=data_add,
@@ -36,7 +36,7 @@ def test_merge_format_num_headers():
     header_add = ['3', '4']
 
     # Call function to merge the data and headers
-    data, header, merged_data, merged_header = stats.merge_formating(
+    data, header, merged_data, merged_header = stats.merge_formatting(
         data_current=data,
         header_current=header,
         data_new=data_add,
