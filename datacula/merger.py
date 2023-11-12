@@ -14,9 +14,10 @@ interpolate the data to the data stream's time array.
 import numpy as np
 import warnings
 from typing import List, Tuple, Dict
-from datacula import convert
+from datacula import convert, stats
 
-def add_processed_data(
+
+def combine_data(
         data: np.array,
         time: np.array,
         header_list: List[str],
@@ -25,7 +26,7 @@ def add_processed_data(
         header_new: List[str],
     ) -> Tuple[np.array, List[str], Dict[str, int]]:
     """
-    Merge or adds processed data to the data stream. Accounts for data shape
+    Merge or adds processed data together. Accounts for data shape
     miss matches and duplicate timestamps. If the data is a different shape than
     the existing data, it will be reshaped to match the existing data.
 
@@ -98,3 +99,120 @@ def add_processed_data(
     header_dict = convert.list_to_dict(header_updated)
 
     return data_updated, header_updated, header_dict
+
+
+def stream_add_data(
+    stream,
+    time_new: np.ndarray,
+    data_new: np.ndarray,
+    header_check: bool = False,
+    header_new: List[str] = None
+) -> object:
+    """
+    Adds a new data stream and corresponding time stream to the
+    existing data.
+
+    Parameters
+    ----------
+    stream : object
+        A Stream object, containing the existing data.
+    new_time : np.ndarray (m,)
+        An array of time values for the new data stream.
+    new_data : np.ndarray
+        An array of data values for the new data stream.
+    header_check : bool, optional
+        If True, checks whether the header in the new data matches the
+        header in the existing data. Defaults to False.
+    new_header : list of str, optional
+        A list of header names for the new data stream. Required if
+        header_check is True.
+
+    Returns
+    -------
+    stream : object
+        A Stream object, containing the updated data.
+
+    Raises
+    ------
+    ValueError
+        If header_check is True and header is not provided or
+        header does not match the existing header.
+
+    Notes
+    -----
+
+    If header_check is True, the method checks whether the header in the
+    new data matches the header in the existing data. If they do not match,
+    the method attempts to merge the headers and updates the header
+    dictionary.
+
+    If header_check is False or the headers match, the new data is
+    appended to the existing data.
+
+    The function also checks whether the time stream is increasing, and if
+    not, sorts the time stream and corresponding data.
+    """
+
+    if stream.data.size == 0:
+        stream.data = data_new
+        stream.time = time_new
+    elif header_check:
+        stream.data, stream.header, data_new, header_new = \
+            stats.merge_formatting(
+                data_current=stream.data,
+                header_current=stream.header,
+                data_new=data_new,
+                header_new=header_new
+            )
+        # updates stream
+        stream.data = np.hstack((stream.data, data_new))
+        stream.time = np.concatenate((stream.time, time_new))
+    else:
+        stream.data = np.hstack((stream.data, data_new))
+        stream.time = np.concatenate((stream.time, time_new))
+
+    # check if the time stream added is increasing
+    increasing_time = np.all(
+        stream.time[1:] >= stream.time[:-1],
+        axis=0
+    )
+
+    if not increasing_time:
+        # sort the time stream
+        sorted_time_index = np.argsort(stream.time)
+        stream.time = stream.time[sorted_time_index]
+        stream.data = stream.data[:, sorted_time_index]
+    return stream
+
+
+def stream_add_processed_data(
+            stream,
+            data_new: np.array,
+            time_new: np.array,
+            header_new: list,
+        ) -> object:
+    """
+    Adds processed data to the data stream. This data has the same time array
+    as the existing data, but we are adding additional data and headers.
+    This is using merger.add_processed_data to merge the new data with the 
+    existing data.
+
+    Parameters:
+    -----------
+    data_new : np.array
+        Processed data to add to the data stream.
+    time_new : np.array
+        Time array for the new data.
+    header_new : list
+        List of headers for the new data.
+    """
+    stream.data, stream.header, stream.header = \
+        combine_data(
+            data=stream.data,
+            time=stream.time,
+            header_list=stream.header,
+            data_new=data_new,
+            time_new=time_new,
+            header_new=header_new,
+        )
+    return stream
