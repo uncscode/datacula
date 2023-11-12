@@ -1,10 +1,11 @@
 """interface to import data to a data stream"""
 from typing import Dict, Any, List
 import os
+import numpy as np
 from datacula import loader
 from datacula.stream import Stream
 from datacula import convert, merger
-import numpy as np
+
 
 def get_new_files(
         path: str,
@@ -159,7 +160,7 @@ def get_1d_stream(
     stream: object = None,
 ) -> object:
     """
-    Loads and formats a 1D data stream from a file and initializes or updates 
+    Loads and formats a 1D data stream from a file and initializes or updates
     a Stream object.
 
     Parameters:

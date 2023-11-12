@@ -1,8 +1,13 @@
+# linting disabled until reformatting of this file
+# pylint: disable=all
+# flake8: noqa
+# pytype: skip-file
+
 # %% [markdown] Introduction
 # # Loading Data from a File
-# 
+#
 # This example shows how to load data from a file into a Stream object. These
-# are usufull for doing some automated analysis, but you can just pull 
+# are usufull for doing some automated analysis, but you can just pull
 
 # data from a file and do whatever you want with it.
 # %% [markdown]

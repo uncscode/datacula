@@ -1,10 +1,8 @@
 """Processes that can act on a stream of data."""
 
-from typing import List, Union
-import numpy as np
-from datacula import convert, stats, merger
-
-
+# from typing import List, Union
+# import numpy as np
+# from datacula import convert, stats, merger
 
 
 # def add_processed_data(
@@ -16,7 +14,7 @@ from datacula import convert, stats, merger
 #     """
 #     Adds processed data to the data stream. This data has the same time array
 #     as the existing data, but we are adding additional data and headers.
-#     This is using merger.add_processed_data to merge the new data with the 
+#     This is using merger.add_processed_data to merge the new data with the
 #     existing data.
 
 #     Parameters:
@@ -315,4 +313,3 @@ from datacula import convert, stats, merger
 #         return self.data_stream[key_values, :]
 #     else:
 #         return self.average_base_data_std[key_values, :]
-
