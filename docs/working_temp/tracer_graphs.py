@@ -754,4 +754,9 @@ ax.grid()
 fig.tight_layout()
 fig.savefig(save_fig_path+'\\'+'bc_mass.pdf', dpi=300)
 
-# %%
+# %% save all data to csv
+save_csv_path = os.path.join(path, "aaar_data_save")
+loader.datalake_to_csv(datalake, save_csv_path, sufix_name='processed')
+loader.datalake_to_csv(datalake_dust1, save_csv_path, sufix_name='processed_dust1')
+loader.datalake_to_csv(datalake_dust2, save_csv_path, sufix_name='processed_dust2')
+loader.datalake_to_csv(datalake_fire, save_csv_path, sufix_name='processed_fire')
